@@ -64,16 +64,24 @@ py run_demo.py
 ### Confidence Score Definition:
 `heuristic_confidence` is a heuristic score $[0.0, 1.0]$ derived from recent temporal volatility (or a fixed cold-start value), **NOT** an empirical probability.
 
-### Data Provenance:
+### Data Provenance & Reliability:
+- `forecast_reliability` (top-level and in `data_provenance`):
+  - `"normal"`: When `current_state.is_abnormal` is False and the prediction is model-based.
+  - `"low_during_incident"`: When `is_abnormal` is True, warning downstream modules of reduced model confidence during anomalies.
+  - `"low_cold_start"`: When the forecast uses the rule-based fallback (< 4 observations or after gaps > 15m).
 - `data_provenance["training_data"]`: Always `"synthetic"` as models are trained on calibrated synthetic traffic series.
 - `data_provenance["is_synthetic"]`: Reflects whether the incoming observation itself was marked `is_simulated: true`.
-- `data_provenance["forecast_type"]`: Either `"model_prediction"` or `"rule_based_fallback"` (during cold start or following gaps $>15$ minutes).
+- `data_provenance["forecast_type"]`: Either `"model_prediction"` or `"rule_based_fallback"`.
 
 ---
 
-## 5. Known Limitations
-1. **Under-prediction during sudden incidents:** The baseline forecaster predicts continuous macroscopic traffic trends. Because sudden collisions are step-function anomalies rather than continuous patterns, the model may under-predict congestion in the initial minutes following an accident until downstream speed drops propagate into lag features.
-2. **Feature Ablation Experiment:** Adding `stopped_ratio` and `is_abnormal` as linear regression features was tested; it did not improve held-out MAE ($0.0774$ vs $0.0774$) because incidents constitute $<2\%$ of overall data. The simpler, robust 10-feature baseline was retained.
+## 5. Known Limitations & Feature Ablation Study
+1. **Limited Incident Data:** The model has little incident data to learn from (in our synthetic dataset, incidents account for exactly **0.23% of training rows** [10 / 4,320], **0.35% of held-out test rows** [10 / 2,880], and **0.28% overall** [20 / 7,200]). Consequently, during unexpected collisions, the baseline regressor can under-predict congestion.
+2. **Feature Ablation Experiment (Measured Numbers):**
+   - **Baseline (10 features):** Overall 15m MAE = **0.0767**, RMSE = **0.0973** \| 30m MAE = **0.0876**, RMSE = **0.1105**
+   - **Extended (12 features with `stopped_ratio` & `is_abnormal`):** Overall 15m MAE = **0.0767**, RMSE = **0.0973** \| 30m MAE = **0.0876**, RMSE = **0.1105**
+   - **Incident-Window Only (16 rows within 30 min of an incident):** Baseline 15m MAE = 0.0542, 30m MAE = 0.0538 vs Extended 15m MAE = 0.0528, 30m MAE = 0.0585.
+   Because the extended model produced identical overall held-out MAE and deteriorated on 30m incident RMSE (0.0706 vs 0.0641), the simpler 10-feature baseline is retained.
 3. **Simulated Road Network:** Calibrated on representative arterial segments (`ROAD-01` through `ROAD-05`). New roads can be added to `ROAD_PROFILES` in `traffic_intelligence/config.py`.
 
 ---
@@ -139,11 +147,13 @@ py run_demo.py
     "penalty_weight": 46.3,
     "recommended_avoid": true
   },
+  "forecast_reliability": "low_during_incident",
   "data_provenance": {
     "module": "traffic_intelligence",
     "model_version": "v1.0-ridge-dual-horizon",
     "training_data": "synthetic",
     "forecast_type": "model_prediction",
+    "forecast_reliability": "low_during_incident",
     "is_synthetic": "true",
     "history_points": "4"
   }

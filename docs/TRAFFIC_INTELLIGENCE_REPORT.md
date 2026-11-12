@@ -156,11 +156,13 @@ A dual-horizon Ridge regressor ($\alpha=1.0$) predicting continuous congestion s
     "penalty_weight": 46.3,
     "recommended_avoid": true
   },
+  "forecast_reliability": "low_during_incident",
   "data_provenance": {
     "module": "traffic_intelligence",
     "model_version": "v1.0-ridge-dual-horizon",
     "training_data": "synthetic",
     "forecast_type": "model_prediction",
+    "forecast_reliability": "low_during_incident",
     "is_synthetic": "true",
     "history_points": "4"
   }
@@ -172,13 +174,15 @@ A dual-horizon Ridge regressor ($\alpha=1.0$) predicting continuous congestion s
 ## 7. Testing, Evaluation & Metric Honesty
 
 ### Automated Unit Test Suite
-11 automated unit tests in `tests/test_traffic_intelligence.py` verify:
+14 automated unit tests in `tests/test_traffic_intelligence.py` verify:
 - Dead-stop handling (`speed=0.0` preserves 0.0 without treating as missing).
 - Road profile consistency between training generator and live scorer.
 - Timezone handling: mixing aware (e.g. UTC/Z) and naive timestamps.
 - Irregular spacing: bucketing 10-second inputs and resetting history after gaps $>15$ minutes.
 - Support for intersection-level output and keying.
 - Heuristic confidence property bounds.
+- Spike anomaly thresholds: normal ramp-up (0.194 $\to$ 0.544) is NOT abnormal; severe jump (0.30 $\to$ 0.78) IS abnormal.
+- Forecast reliability tri-state flags (`normal`, `low_during_incident`, `low_cold_start`).
 
 ### Held-out Evaluation on Unseen Synthetic Data (Real Measured Numbers)
 - **Training Set:** 3 days (4,320 observations, random seed 42)
@@ -194,7 +198,11 @@ A dual-horizon Ridge regressor ($\alpha=1.0$) predicting continuous congestion s
 
 ---
 
-## 8. Known Limitations
-1. **Incident Under-prediction:** The baseline forecaster operates on continuous traffic flow dynamics (lags, speeds, rolling volume). It does not explicitly branch on binary incident flags; during sudden collisions, the 15–30 minute forecast may take 1–2 cycles to catch up with shockwaves.
-2. **Feature Ablation Experiment:** Adding `stopped_ratio` and `is_abnormal` as linear regression features did not improve held-out MAE across the entire multi-day time-series ($0.0774$ vs $0.0774$), as incidents represent $<2\%$ of time steps. A non-linear or regime-switching model can be explored if multi-day real incident datasets become available.
-3. **Data Provenance:** Training was performed on simulated/synthetic series. Field `data_provenance["is_synthetic"]` transparently mirrors whether the incoming observation is simulated.
+## 8. Known Limitations & Feature Ablation Study
+1. **Limited Incident Data:** The model has little incident data to learn from (in our synthetic dataset, incidents account for exactly **0.23% of training rows** [10 / 4,320], **0.35% of held-out test rows** [10 / 2,880], and **0.28% overall** [20 / 7,200]). Consequently, during unexpected collisions, the baseline regressor can under-predict congestion.
+2. **Feature Ablation Experiment (Measured Numbers):**
+   - **Baseline (10 features):** Overall 15m MAE = **0.0767**, RMSE = **0.0973** | 30m MAE = **0.0876**, RMSE = **0.1105**
+   - **Extended (12 features with `stopped_ratio` & `is_abnormal`):** Overall 15m MAE = **0.0767**, RMSE = **0.0973** | 30m MAE = **0.0876**, RMSE = **0.1105**
+   - **Incident-Window Only (16 rows within 30 min of an incident):** Baseline 15m MAE = 0.0542, 30m MAE = 0.0538 vs Extended 15m MAE = 0.0528, 30m MAE = 0.0585.
+   Because the extended model produced identical overall held-out MAE and deteriorated on 30m incident RMSE (0.0706 vs 0.0641), the simpler 10-feature baseline was retained.
+3. **Data Provenance:** Training was performed on simulated/synthetic series. Field `data_provenance["is_synthetic"]` transparently mirrors whether the incoming observation is simulated. Field `forecast_reliability` explicitly flags when confidence is degraded (`low_during_incident`, `low_cold_start`).
