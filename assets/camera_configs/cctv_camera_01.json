@@ -1,0 +1,47 @@
+{
+  "camera_id": "cctv_camera_01",
+  "road_id": "ROAD-01",
+  "is_calibrated_zones": true,
+  "description": "Intersection 4th Avenue & Grand Street - CCTV Cam 01",
+  "reference_resolution": [1920, 1080],
+  "roi_polygon": [
+    [180, 220],
+    [1740, 220],
+    [1900, 1060],
+    [100, 1060]
+  ],
+  "lanes": [
+    {
+      "lane_id": "LANE-01-NORTH",
+      "direction": "northbound",
+      "polygon": [
+        [180, 220],
+        [940, 220],
+        [980, 1060],
+        [100, 1060]
+      ]
+    },
+    {
+      "lane_id": "LANE-02-SOUTH",
+      "direction": "southbound",
+      "polygon": [
+        [940, 220],
+        [1740, 220],
+        [1900, 1060],
+        [980, 1060]
+      ]
+    }
+  ],
+  "stop_line_zone": [
+    [400, 220],
+    [1500, 220],
+    [1550, 360],
+    [350, 360]
+  ],
+  "normal_queue_polygon": [
+    [350, 220],
+    [1550, 220],
+    [1650, 480],
+    [250, 480]
+  ]
+}

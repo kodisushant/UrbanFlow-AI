@@ -1,0 +1,11 @@
+{
+  "camera_id": "default_camera",
+  "road_id": "ROAD-UNKNOWN",
+  "is_calibrated_zones": false,
+  "description": "Uncalibrated default fallback camera config. Covers full frame without lane or stop-line segmentation.",
+  "reference_resolution": [1920, 1080],
+  "roi_polygon": [],
+  "lanes": [],
+  "stop_line_zone": [],
+  "normal_queue_polygon": []
+}
