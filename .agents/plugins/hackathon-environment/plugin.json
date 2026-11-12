@@ -1,0 +1,7 @@
+{
+  "name": "hackathon-environment",
+  "displayName": "Hackathon Development Suite",
+  "version": "1.0.0",
+  "description": "Antigravity hackathon development configuration featuring Context7, Playwright, Chrome DevTools, and GitHub MCP servers alongside ML, Backend, and Hackathon Mentor agent skills."
+}
+
