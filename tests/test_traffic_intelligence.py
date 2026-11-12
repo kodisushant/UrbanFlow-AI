@@ -118,6 +118,41 @@ class TestCongestionScorer(unittest.TestCase):
         self.assertIn("Blockage", state.abnormal_reason)
         self.assertGreater(routing.penalty_weight, 30.0)
 
+    def test_spike_rule_rampup_is_not_abnormal(self):
+        """Task 1: normal rush-hour jump (0.194 -> 0.544 over 5m) must NOT be flagged abnormal."""
+        scorer = CongestionScorer()
+        t0 = self.base_time
+        # Record initial reading: score ~ 0.194
+        scorer._record_history("ROAD-02:none", t0, 0.194)
+
+        is_abn, reason = scorer.check_abnormal_congestion(
+            segment_key="ROAD-02:none",
+            timestamp=t0 + timedelta(minutes=5),
+            current_score=0.544,
+            speed=28.5,
+            stopped_count=1,
+            free_flow_speed=45.0
+        )
+        self.assertFalse(is_abn)
+        self.assertIsNone(reason)
+
+    def test_spike_rule_severe_jump_is_abnormal(self):
+        """Task 1: severe spike (0.30 -> 0.78 over 5m) exceeding delta 0.40 and score 0.65 IS abnormal."""
+        scorer = CongestionScorer()
+        t0 = self.base_time
+        scorer._record_history("ROAD-02:none", t0, 0.30)
+
+        is_abn, reason = scorer.check_abnormal_congestion(
+            segment_key="ROAD-02:none",
+            timestamp=t0 + timedelta(minutes=5),
+            current_score=0.78,
+            speed=12.0,
+            stopped_count=1,
+            free_flow_speed=45.0
+        )
+        self.assertTrue(is_abn)
+        self.assertIn("Sudden congestion spike", reason)
+
 
 class TestTimezoneHandling(unittest.TestCase):
 
@@ -262,6 +297,53 @@ class TestForecasterHonestyAndHeuristicConfidence(unittest.TestCase):
         self.assertGreaterEqual(result.horizon_15m.heuristic_confidence, 0.0)
         self.assertLessEqual(result.horizon_15m.heuristic_confidence, 1.0)
         self.assertEqual(f_type, "rule_based_fallback")
+
+    def test_forecast_reliability_all_three_values(self):
+        """Task 3: test 'low_cold_start', 'normal', and 'low_during_incident' reliability flags."""
+        pipeline = TrafficIntelligencePipeline(auto_calibrate=True)
+        base = datetime(2026, 11, 12, 14, 0, 0, tzinfo=ZoneInfo(DEFAULT_TIMEZONE))
+
+        # 1. Cold start observation (< 4 points in history)
+        obs_cold = CCTVObservation(
+            source_id="cam_01",
+            road_id="ROAD-01",
+            timestamp=base,
+            total_vehicles=10,
+            estimated_speed_kmph=45.0
+        )
+        out_cold = pipeline.process_observation(obs_cold)
+        self.assertEqual(out_cold.forecast_reliability, "low_cold_start")
+        self.assertEqual(out_cold.data_provenance["forecast_reliability"], "low_cold_start")
+
+        # 2. Build 4 consecutive 5-min observations to reach model prediction
+        for i in range(1, 5):
+            obs = CCTVObservation(
+                source_id="cam_01",
+                road_id="ROAD-01",
+                timestamp=base + timedelta(minutes=i * 5),
+                total_vehicles=12 + i,
+                estimated_speed_kmph=44.0 - i
+            )
+            out_normal = pipeline.process_observation(obs)
+
+        # Normal condition reached
+        self.assertEqual(out_normal.forecast_reliability, "normal")
+        self.assertEqual(out_normal.data_provenance["forecast_reliability"], "normal")
+        self.assertEqual(out_normal.data_provenance["forecast_type"], "model_prediction")
+
+        # 3. Trigger incident / blockage
+        obs_incident = CCTVObservation(
+            source_id="cam_01",
+            road_id="ROAD-01",
+            timestamp=base + timedelta(minutes=25),
+            total_vehicles=40,
+            estimated_speed_kmph=4.0,
+            stopped_vehicles_count=5
+        )
+        out_incident = pipeline.process_observation(obs_incident)
+        self.assertTrue(out_incident.current_state.is_abnormal)
+        self.assertEqual(out_incident.forecast_reliability, "low_during_incident")
+        self.assertEqual(out_incident.data_provenance["forecast_reliability"], "low_during_incident")
 
 
 if __name__ == "__main__":

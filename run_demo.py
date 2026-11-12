@@ -136,7 +136,7 @@ def main():
         print(f"  Forecast 15m -> Score: {f15.predicted_congestion_score:.3f} ({f15.predicted_congestion_level.value}) | Speed: {f15.predicted_speed_kmph:.1f} km/h | Heuristic Conf: {f15.heuristic_confidence:.2f}")
         print(f"  Forecast 30m -> Score: {f30.predicted_congestion_score:.3f} ({f30.predicted_congestion_level.value}) | Speed: {f30.predicted_speed_kmph:.1f} km/h | Heuristic Conf: {f30.heuristic_confidence:.2f}")
         print(f"  Route Metadata: Multiplier: {route.travel_time_multiplier:.2f}x | Penalty: {route.penalty_weight:.1f} | Recommend Avoid: {route.recommended_avoid}")
-        print(f"  Provenance: {prov['forecast_type']} | is_synthetic: {prov['is_synthetic']} | training_data: {prov['training_data']}\n")
+        print(f"  Reliability: {output.forecast_reliability} | Provenance: {prov['forecast_type']} | is_synthetic: {prov['is_synthetic']} | training_data: {prov['training_data']}\n")
 
     print("[4] Final Structured JSON Output for Backend (Member 1 & Member 4):")
     if latest_output:
