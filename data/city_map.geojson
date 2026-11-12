@@ -1,0 +1,2415 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "INT-01",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.38,
+          17.442
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-01",
+        "name": "City Center Square",
+        "type": "transit_hub",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-02",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.381,
+          17.456
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-02",
+        "name": "North Tech Park Junction",
+        "type": "intersection",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-03",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.374,
+          17.4485
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-03",
+        "name": "Cyber Gateway Hub",
+        "type": "intersection",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-04",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.372,
+          17.46
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-04",
+        "name": "Metro Hospital North",
+        "type": "hospital",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-05",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.385,
+          17.438
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-05",
+        "name": "Central Police Headquarters",
+        "type": "police_station",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-06",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.358,
+          17.443
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-06",
+        "name": "West Industrial Zone",
+        "type": "intersection",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-07",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.355,
+          17.449
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-07",
+        "name": "West Fire Station #1",
+        "type": "fire_station",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-08",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.368,
+          17.431
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-08",
+        "name": "Financial District South",
+        "type": "intersection",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-09",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.382,
+          17.426
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-09",
+        "name": "South Express Junction",
+        "type": "intersection",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-10",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.397,
+          17.444
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-10",
+        "name": "East Riverside Crossing",
+        "type": "intersection",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-11",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.398,
+          17.452
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-11",
+        "name": "East Police Substation",
+        "type": "police_station",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-12",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.388,
+          17.449
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-12",
+        "name": "Midtown Commercial Plaza",
+        "type": "intersection",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-13",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.373,
+          17.422
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-13",
+        "name": "South City Apex Hospital",
+        "type": "hospital",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-14",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.348,
+          17.437
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-14",
+        "name": "Outer Ring Road - West Gate",
+        "type": "intersection",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-15",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.38,
+          17.468
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-15",
+        "name": "Outer Ring Road - North Gate",
+        "type": "intersection",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-16",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.409,
+          17.45
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-16",
+        "name": "Outer Ring Road - East Gate",
+        "type": "intersection",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-17",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.382,
+          17.418
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-17",
+        "name": "Outer Ring Road - South Gate",
+        "type": "intersection",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-18",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.376,
+          17.436
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-18",
+        "name": "Central Market Circle",
+        "type": "intersection",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-19",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.384,
+          17.445
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-19",
+        "name": "Grand Boulevard Overpass",
+        "type": "intersection",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "INT-20",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          78.365,
+          17.415
+        ]
+      },
+      "properties": {
+        "feature_type": "intersection",
+        "node_id": "INT-20",
+        "name": "Airport Expressway Interchange",
+        "type": "transit_hub",
+        "signal_state": "GREEN",
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-01A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.38,
+            17.442
+          ],
+          [
+            78.384,
+            17.445
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-01A",
+        "pair_id": "ROAD-01",
+        "direction": "forward",
+        "name": "Central Grand Blvd",
+        "source": "INT-01",
+        "target": "INT-19",
+        "length_meters": 650,
+        "speed_limit_kmph": 50,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 46.8,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-01B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.384,
+            17.445
+          ],
+          [
+            78.38,
+            17.442
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-01B",
+        "pair_id": "ROAD-01",
+        "direction": "reverse",
+        "name": "Central Grand Blvd",
+        "source": "INT-19",
+        "target": "INT-01",
+        "length_meters": 650,
+        "speed_limit_kmph": 50,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 46.8,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-02A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.384,
+            17.445
+          ],
+          [
+            78.388,
+            17.449
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-02A",
+        "pair_id": "ROAD-02",
+        "direction": "forward",
+        "name": "Midtown Avenue",
+        "source": "INT-19",
+        "target": "INT-12",
+        "length_meters": 700,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 50.4,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-02B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.388,
+            17.449
+          ],
+          [
+            78.384,
+            17.445
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-02B",
+        "pair_id": "ROAD-02",
+        "direction": "reverse",
+        "name": "Midtown Avenue",
+        "source": "INT-12",
+        "target": "INT-19",
+        "length_meters": 700,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 50.4,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-03A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.384,
+            17.445
+          ],
+          [
+            78.374,
+            17.4485
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-03A",
+        "pair_id": "ROAD-03",
+        "direction": "forward",
+        "name": "Cyber Gateway Link",
+        "source": "INT-19",
+        "target": "INT-03",
+        "length_meters": 1250,
+        "speed_limit_kmph": 60,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 75.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-03B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.374,
+            17.4485
+          ],
+          [
+            78.384,
+            17.445
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-03B",
+        "pair_id": "ROAD-03",
+        "direction": "reverse",
+        "name": "Cyber Gateway Link",
+        "source": "INT-03",
+        "target": "INT-19",
+        "length_meters": 1250,
+        "speed_limit_kmph": 60,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 75.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-04A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.38,
+            17.442
+          ],
+          [
+            78.376,
+            17.436
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-04A",
+        "pair_id": "ROAD-04",
+        "direction": "forward",
+        "name": "Market Road",
+        "source": "INT-01",
+        "target": "INT-18",
+        "length_meters": 850,
+        "speed_limit_kmph": 40,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 76.5,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-04B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.376,
+            17.436
+          ],
+          [
+            78.38,
+            17.442
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-04B",
+        "pair_id": "ROAD-04",
+        "direction": "reverse",
+        "name": "Market Road",
+        "source": "INT-18",
+        "target": "INT-01",
+        "length_meters": 850,
+        "speed_limit_kmph": 40,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 76.5,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-05A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.376,
+            17.436
+          ],
+          [
+            78.368,
+            17.431
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-05A",
+        "pair_id": "ROAD-05",
+        "direction": "forward",
+        "name": "South Financial Way",
+        "source": "INT-18",
+        "target": "INT-08",
+        "length_meters": 1150,
+        "speed_limit_kmph": 60,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 69.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-05B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.368,
+            17.431
+          ],
+          [
+            78.376,
+            17.436
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-05B",
+        "pair_id": "ROAD-05",
+        "direction": "reverse",
+        "name": "South Financial Way",
+        "source": "INT-08",
+        "target": "INT-18",
+        "length_meters": 1150,
+        "speed_limit_kmph": 60,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 69.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-06A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.38,
+            17.442
+          ],
+          [
+            78.385,
+            17.438
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-06A",
+        "pair_id": "ROAD-06",
+        "direction": "forward",
+        "name": "Police HQ Avenue",
+        "source": "INT-01",
+        "target": "INT-05",
+        "length_meters": 750,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 54.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-06B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.385,
+            17.438
+          ],
+          [
+            78.38,
+            17.442
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-06B",
+        "pair_id": "ROAD-06",
+        "direction": "reverse",
+        "name": "Police HQ Avenue",
+        "source": "INT-05",
+        "target": "INT-01",
+        "length_meters": 750,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 54.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-07A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.385,
+            17.438
+          ],
+          [
+            78.382,
+            17.426
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-07A",
+        "pair_id": "ROAD-07",
+        "direction": "forward",
+        "name": "South Expressway Link",
+        "source": "INT-05",
+        "target": "INT-09",
+        "length_meters": 1500,
+        "speed_limit_kmph": 60,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 90.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-07B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.382,
+            17.426
+          ],
+          [
+            78.385,
+            17.438
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-07B",
+        "pair_id": "ROAD-07",
+        "direction": "reverse",
+        "name": "South Expressway Link",
+        "source": "INT-09",
+        "target": "INT-05",
+        "length_meters": 1500,
+        "speed_limit_kmph": 60,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 90.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-08A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.388,
+            17.449
+          ],
+          [
+            78.381,
+            17.456
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-08A",
+        "pair_id": "ROAD-08",
+        "direction": "forward",
+        "name": "Tech Corridor North",
+        "source": "INT-12",
+        "target": "INT-02",
+        "length_meters": 1200,
+        "speed_limit_kmph": 60,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 72.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-08B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.381,
+            17.456
+          ],
+          [
+            78.388,
+            17.449
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-08B",
+        "pair_id": "ROAD-08",
+        "direction": "reverse",
+        "name": "Tech Corridor North",
+        "source": "INT-02",
+        "target": "INT-12",
+        "length_meters": 1200,
+        "speed_limit_kmph": 60,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 72.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-09A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.374,
+            17.4485
+          ],
+          [
+            78.381,
+            17.456
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-09A",
+        "pair_id": "ROAD-09",
+        "direction": "forward",
+        "name": "Cyber Tech Connector",
+        "source": "INT-03",
+        "target": "INT-02",
+        "length_meters": 1250,
+        "speed_limit_kmph": 60,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 75.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-09B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.381,
+            17.456
+          ],
+          [
+            78.374,
+            17.4485
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-09B",
+        "pair_id": "ROAD-09",
+        "direction": "reverse",
+        "name": "Cyber Tech Connector",
+        "source": "INT-02",
+        "target": "INT-03",
+        "length_meters": 1250,
+        "speed_limit_kmph": 60,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 75.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-10A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.381,
+            17.456
+          ],
+          [
+            78.372,
+            17.46
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-10A",
+        "pair_id": "ROAD-10",
+        "direction": "forward",
+        "name": "Hospital Access Blvd",
+        "source": "INT-02",
+        "target": "INT-04",
+        "length_meters": 1200,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 86.4,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-10B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.372,
+            17.46
+          ],
+          [
+            78.381,
+            17.456
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-10B",
+        "pair_id": "ROAD-10",
+        "direction": "reverse",
+        "name": "Hospital Access Blvd",
+        "source": "INT-04",
+        "target": "INT-02",
+        "length_meters": 1200,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 86.4,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-11A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.374,
+            17.4485
+          ],
+          [
+            78.372,
+            17.46
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-11A",
+        "pair_id": "ROAD-11",
+        "direction": "forward",
+        "name": "North Gateway Expressway",
+        "source": "INT-03",
+        "target": "INT-04",
+        "length_meters": 1350,
+        "speed_limit_kmph": 60,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 81.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-11B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.372,
+            17.46
+          ],
+          [
+            78.374,
+            17.4485
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-11B",
+        "pair_id": "ROAD-11",
+        "direction": "reverse",
+        "name": "North Gateway Expressway",
+        "source": "INT-04",
+        "target": "INT-03",
+        "length_meters": 1350,
+        "speed_limit_kmph": 60,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 81.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-12A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.381,
+            17.456
+          ],
+          [
+            78.38,
+            17.468
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-12A",
+        "pair_id": "ROAD-12",
+        "direction": "forward",
+        "name": "North Ring Link",
+        "source": "INT-02",
+        "target": "INT-15",
+        "length_meters": 1500,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 67.5,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-12B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.38,
+            17.468
+          ],
+          [
+            78.381,
+            17.456
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-12B",
+        "pair_id": "ROAD-12",
+        "direction": "reverse",
+        "name": "North Ring Link",
+        "source": "INT-15",
+        "target": "INT-02",
+        "length_meters": 1500,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 67.5,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-13A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.374,
+            17.4485
+          ],
+          [
+            78.358,
+            17.443
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-13A",
+        "pair_id": "ROAD-13",
+        "direction": "forward",
+        "name": "West Industrial Highway",
+        "source": "INT-03",
+        "target": "INT-06",
+        "length_meters": 1950,
+        "speed_limit_kmph": 60,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 117.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-13B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.358,
+            17.443
+          ],
+          [
+            78.374,
+            17.4485
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-13B",
+        "pair_id": "ROAD-13",
+        "direction": "reverse",
+        "name": "West Industrial Highway",
+        "source": "INT-06",
+        "target": "INT-03",
+        "length_meters": 1950,
+        "speed_limit_kmph": 60,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 117.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-14A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.358,
+            17.443
+          ],
+          [
+            78.355,
+            17.449
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-14A",
+        "pair_id": "ROAD-14",
+        "direction": "forward",
+        "name": "Fire Station Feeder Road",
+        "source": "INT-06",
+        "target": "INT-07",
+        "length_meters": 800,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 57.6,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-14B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.355,
+            17.449
+          ],
+          [
+            78.358,
+            17.443
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-14B",
+        "pair_id": "ROAD-14",
+        "direction": "reverse",
+        "name": "Fire Station Feeder Road",
+        "source": "INT-07",
+        "target": "INT-06",
+        "length_meters": 800,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 57.6,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-15A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.358,
+            17.443
+          ],
+          [
+            78.348,
+            17.437
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-15A",
+        "pair_id": "ROAD-15",
+        "direction": "forward",
+        "name": "West Ring Connector",
+        "source": "INT-06",
+        "target": "INT-14",
+        "length_meters": 1350,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 60.8,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-15B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.348,
+            17.437
+          ],
+          [
+            78.358,
+            17.443
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-15B",
+        "pair_id": "ROAD-15",
+        "direction": "reverse",
+        "name": "West Ring Connector",
+        "source": "INT-14",
+        "target": "INT-06",
+        "length_meters": 1350,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 60.8,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-16A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.348,
+            17.437
+          ],
+          [
+            78.368,
+            17.431
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-16A",
+        "pair_id": "ROAD-16",
+        "direction": "forward",
+        "name": "Southwest Arterial",
+        "source": "INT-14",
+        "target": "INT-08",
+        "length_meters": 2400,
+        "speed_limit_kmph": 70,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 123.4,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-16B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.368,
+            17.431
+          ],
+          [
+            78.348,
+            17.437
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-16B",
+        "pair_id": "ROAD-16",
+        "direction": "reverse",
+        "name": "Southwest Arterial",
+        "source": "INT-08",
+        "target": "INT-14",
+        "length_meters": 2400,
+        "speed_limit_kmph": 70,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 123.4,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-17A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.388,
+            17.449
+          ],
+          [
+            78.397,
+            17.444
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-17A",
+        "pair_id": "ROAD-17",
+        "direction": "forward",
+        "name": "Riverside Parkway",
+        "source": "INT-12",
+        "target": "INT-10",
+        "length_meters": 1200,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 86.4,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-17B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.397,
+            17.444
+          ],
+          [
+            78.388,
+            17.449
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-17B",
+        "pair_id": "ROAD-17",
+        "direction": "reverse",
+        "name": "Riverside Parkway",
+        "source": "INT-10",
+        "target": "INT-12",
+        "length_meters": 1200,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 86.4,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-18A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.397,
+            17.444
+          ],
+          [
+            78.398,
+            17.452
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-18A",
+        "pair_id": "ROAD-18",
+        "direction": "forward",
+        "name": "East Substation Road",
+        "source": "INT-10",
+        "target": "INT-11",
+        "length_meters": 1000,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 72.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-18B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.398,
+            17.452
+          ],
+          [
+            78.397,
+            17.444
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-18B",
+        "pair_id": "ROAD-18",
+        "direction": "reverse",
+        "name": "East Substation Road",
+        "source": "INT-11",
+        "target": "INT-10",
+        "length_meters": 1000,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 72.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-19A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.398,
+            17.452
+          ],
+          [
+            78.409,
+            17.45
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-19A",
+        "pair_id": "ROAD-19",
+        "direction": "forward",
+        "name": "East Ring Connector",
+        "source": "INT-11",
+        "target": "INT-16",
+        "length_meters": 1350,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 60.8,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-19B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.409,
+            17.45
+          ],
+          [
+            78.398,
+            17.452
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-19B",
+        "pair_id": "ROAD-19",
+        "direction": "reverse",
+        "name": "East Ring Connector",
+        "source": "INT-16",
+        "target": "INT-11",
+        "length_meters": 1350,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 60.8,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-20A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.38,
+            17.442
+          ],
+          [
+            78.397,
+            17.444
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-20A",
+        "pair_id": "ROAD-20",
+        "direction": "forward",
+        "name": "River Boulevard East",
+        "source": "INT-01",
+        "target": "INT-10",
+        "length_meters": 2000,
+        "speed_limit_kmph": 60,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 120.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-20B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.397,
+            17.444
+          ],
+          [
+            78.38,
+            17.442
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-20B",
+        "pair_id": "ROAD-20",
+        "direction": "reverse",
+        "name": "River Boulevard East",
+        "source": "INT-10",
+        "target": "INT-01",
+        "length_meters": 2000,
+        "speed_limit_kmph": 60,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 120.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-21A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.368,
+            17.431
+          ],
+          [
+            78.373,
+            17.422
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-21A",
+        "pair_id": "ROAD-21",
+        "direction": "forward",
+        "name": "Apex Hospital Drive",
+        "source": "INT-08",
+        "target": "INT-13",
+        "length_meters": 1250,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 90.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-21B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.373,
+            17.422
+          ],
+          [
+            78.368,
+            17.431
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-21B",
+        "pair_id": "ROAD-21",
+        "direction": "reverse",
+        "name": "Apex Hospital Drive",
+        "source": "INT-13",
+        "target": "INT-08",
+        "length_meters": 1250,
+        "speed_limit_kmph": 50,
+        "lanes": 2,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 90.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-22A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.382,
+            17.426
+          ],
+          [
+            78.382,
+            17.418
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-22A",
+        "pair_id": "ROAD-22",
+        "direction": "forward",
+        "name": "South Ring Interchange Road",
+        "source": "INT-09",
+        "target": "INT-17",
+        "length_meters": 1050,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 47.2,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-22B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.382,
+            17.418
+          ],
+          [
+            78.382,
+            17.426
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-22B",
+        "pair_id": "ROAD-22",
+        "direction": "reverse",
+        "name": "South Ring Interchange Road",
+        "source": "INT-17",
+        "target": "INT-09",
+        "length_meters": 1050,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 47.2,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-23A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.373,
+            17.422
+          ],
+          [
+            78.365,
+            17.415
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-23A",
+        "pair_id": "ROAD-23",
+        "direction": "forward",
+        "name": "Airport Link South",
+        "source": "INT-13",
+        "target": "INT-20",
+        "length_meters": 1300,
+        "speed_limit_kmph": 80,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 58.5,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-23B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.365,
+            17.415
+          ],
+          [
+            78.373,
+            17.422
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-23B",
+        "pair_id": "ROAD-23",
+        "direction": "reverse",
+        "name": "Airport Link South",
+        "source": "INT-20",
+        "target": "INT-13",
+        "length_meters": 1300,
+        "speed_limit_kmph": 80,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 58.5,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-24A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.368,
+            17.431
+          ],
+          [
+            78.365,
+            17.415
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-24A",
+        "pair_id": "ROAD-24",
+        "direction": "forward",
+        "name": "Financial Airport Connector",
+        "source": "INT-08",
+        "target": "INT-20",
+        "length_meters": 1950,
+        "speed_limit_kmph": 80,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 87.8,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-24B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.365,
+            17.415
+          ],
+          [
+            78.368,
+            17.431
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-24B",
+        "pair_id": "ROAD-24",
+        "direction": "reverse",
+        "name": "Financial Airport Connector",
+        "source": "INT-20",
+        "target": "INT-08",
+        "length_meters": 1950,
+        "speed_limit_kmph": 80,
+        "lanes": 3,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 87.8,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-25A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.382,
+            17.418
+          ],
+          [
+            78.365,
+            17.415
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-25A",
+        "pair_id": "ROAD-25",
+        "direction": "forward",
+        "name": "South Ring Terminal Road",
+        "source": "INT-17",
+        "target": "INT-20",
+        "length_meters": 2000,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 90.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-25B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.365,
+            17.415
+          ],
+          [
+            78.382,
+            17.418
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-25B",
+        "pair_id": "ROAD-25",
+        "direction": "reverse",
+        "name": "South Ring Terminal Road",
+        "source": "INT-20",
+        "target": "INT-17",
+        "length_meters": 2000,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 90.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-26A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.38,
+            17.468
+          ],
+          [
+            78.409,
+            17.45
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-26A",
+        "pair_id": "ROAD-26",
+        "direction": "forward",
+        "name": "Outer Ring Road North-East",
+        "source": "INT-15",
+        "target": "INT-16",
+        "length_meters": 3900,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 175.5,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-26B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.409,
+            17.45
+          ],
+          [
+            78.38,
+            17.468
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-26B",
+        "pair_id": "ROAD-26",
+        "direction": "reverse",
+        "name": "Outer Ring Road North-East",
+        "source": "INT-16",
+        "target": "INT-15",
+        "length_meters": 3900,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 175.5,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-27A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.409,
+            17.45
+          ],
+          [
+            78.382,
+            17.418
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-27A",
+        "pair_id": "ROAD-27",
+        "direction": "forward",
+        "name": "Outer Ring Road East-South",
+        "source": "INT-16",
+        "target": "INT-17",
+        "length_meters": 4800,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 216.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-27B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.382,
+            17.418
+          ],
+          [
+            78.409,
+            17.45
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-27B",
+        "pair_id": "ROAD-27",
+        "direction": "reverse",
+        "name": "Outer Ring Road East-South",
+        "source": "INT-17",
+        "target": "INT-16",
+        "length_meters": 4800,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 216.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-28A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.382,
+            17.418
+          ],
+          [
+            78.348,
+            17.437
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-28A",
+        "pair_id": "ROAD-28",
+        "direction": "forward",
+        "name": "Outer Ring Road South-West",
+        "source": "INT-17",
+        "target": "INT-14",
+        "length_meters": 4400,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 198.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-28B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.348,
+            17.437
+          ],
+          [
+            78.382,
+            17.418
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-28B",
+        "pair_id": "ROAD-28",
+        "direction": "reverse",
+        "name": "Outer Ring Road South-West",
+        "source": "INT-14",
+        "target": "INT-17",
+        "length_meters": 4400,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 198.0,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-29A",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.348,
+            17.437
+          ],
+          [
+            78.38,
+            17.468
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-29A",
+        "pair_id": "ROAD-29",
+        "direction": "forward",
+        "name": "Outer Ring Road West-North",
+        "source": "INT-14",
+        "target": "INT-15",
+        "length_meters": 5100,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 229.5,
+        "simulated": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-29B",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.38,
+            17.468
+          ],
+          [
+            78.348,
+            17.437
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "road",
+        "road_id": "ROAD-29B",
+        "pair_id": "ROAD-29",
+        "direction": "reverse",
+        "name": "Outer Ring Road West-North",
+        "source": "INT-15",
+        "target": "INT-14",
+        "length_meters": 5100,
+        "speed_limit_kmph": 80,
+        "lanes": 4,
+        "congestion_factor": 1.0,
+        "capacity_fraction": 1.0,
+        "is_closed": false,
+        "closure_reason": null,
+        "effective_travel_time_seconds": 229.5,
+        "simulated": true
+      }
+    }
+  ]
+}
