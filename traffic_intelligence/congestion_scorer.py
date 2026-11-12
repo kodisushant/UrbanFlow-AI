@@ -157,8 +157,9 @@ class CongestionScorer:
             time_diff_min = max(0.1, (timestamp - prev_time).total_seconds() / 60.0)
             if time_diff_min <= 15.0:
                 delta_score = current_score - prev_score
-                # Sudden severe increase
-                if delta_score >= 0.35:
+                # Stricter spike rule: jump must be at least +0.40 AND reach heavy congestion (>= 0.65)
+                # Prevents normal rush-hour build-ups from triggering false alarms
+                if delta_score >= 0.40 and current_score >= 0.65:
                     self._record_history(segment_key, timestamp, current_score)
                     return True, f"Sudden congestion spike: +{delta_score:.2f} within {time_diff_min:.1f} mins"
 
