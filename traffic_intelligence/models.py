@@ -98,12 +98,17 @@ class TrafficIntelligenceOutput(BaseModel):
     current_state: CurrentTrafficState
     forecast: TrafficForecastResult
     routing_metadata: RoutingMetadata
+    forecast_reliability: Optional[str] = Field(
+        None,
+        description="Forecast reliability indicator: 'normal', 'low_during_incident', or 'low_cold_start'"
+    )
     data_provenance: Dict[str, str] = Field(
         default_factory=lambda: {
             "module": "traffic_intelligence",
             "model_version": "v1.0-baseline-ridge",
             "training_data": "synthetic",
             "forecast_type": "model_prediction",
+            "forecast_reliability": "normal",
             "is_synthetic": "false"
         }
     )

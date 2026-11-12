@@ -151,7 +151,15 @@ class TrafficIntelligencePipeline:
         # 4. 15-30 Minute Congestion Forecast
         forecast_result, forecast_type = self.forecaster.predict(states_for_forecast)
 
-        # 5. Construct complete output payload
+        # 5. Determine forecast reliability flag
+        if current_state.is_abnormal:
+            reliability = "low_during_incident"
+        elif forecast_type == "rule_based_fallback":
+            reliability = "low_cold_start"
+        else:
+            reliability = "normal"
+
+        # 6. Construct complete output payload
         return TrafficIntelligenceOutput(
             road_id=observation.road_id,
             intersection_id=observation.intersection_id,
@@ -159,11 +167,13 @@ class TrafficIntelligencePipeline:
             current_state=current_state,
             forecast=forecast_result,
             routing_metadata=routing_meta,
+            forecast_reliability=reliability,
             data_provenance={
                 "module": "traffic_intelligence",
                 "model_version": "v1.0-ridge-dual-horizon",
                 "training_data": "synthetic",
                 "forecast_type": forecast_type,
+                "forecast_reliability": reliability,
                 "is_synthetic": str(observation.is_simulated).lower(),
                 "history_points": str(len(states_for_forecast))
             }
