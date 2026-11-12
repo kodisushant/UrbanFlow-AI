@@ -51,6 +51,12 @@ Thumbs.db
 *.onnx
 *_openvino_model/
 
+# Frontend dependencies and build outputs
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+
 # Artifacts & Local outputs
 assets/evidence/*.jpg
 assets/benchmark_results.json
