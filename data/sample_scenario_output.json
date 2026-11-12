@@ -1,0 +1,509 @@
+{
+  "scenario": "Cyber City Emergency Response Benchmark",
+  "simulated": true,
+  "incident": {
+    "incident_id": "INC-DEMO-001",
+    "type": "two_car_collision_with_injury",
+    "coordinates": {
+      "latitude": 17.4485,
+      "longitude": 78.374
+    },
+    "blocked_roads": [
+      "ROAD-03A",
+      "ROAD-03B"
+    ]
+  },
+  "pre_incident_route": {
+    "origin_node": "INT-04",
+    "destination_node": "INT-01",
+    "algorithm": "astar",
+    "unit_id": null,
+    "incident_id": null,
+    "is_emergency_route": false,
+    "road_ids": [
+      "ROAD-11B",
+      "ROAD-03B",
+      "ROAD-01B"
+    ],
+    "node_ids": [
+      "INT-04",
+      "INT-03",
+      "INT-19",
+      "INT-01"
+    ],
+    "estimated_travel_time_seconds": 202.8,
+    "estimated_travel_time_minutes": 3.38,
+    "total_distance_meters": 3250.0,
+    "coordinates": [
+      {
+        "latitude": 17.46,
+        "longitude": 78.372
+      },
+      {
+        "latitude": 17.4485,
+        "longitude": 78.374
+      },
+      {
+        "latitude": 17.445,
+        "longitude": 78.384
+      },
+      {
+        "latitude": 17.442,
+        "longitude": 78.38
+      }
+    ],
+    "blocked_roads_avoided": [],
+    "congestion_avoided": false,
+    "alternative_routes": [
+      {
+        "node_ids": [
+          "INT-04",
+          "INT-02",
+          "INT-12",
+          "INT-19",
+          "INT-01"
+        ],
+        "road_ids": [
+          "ROAD-10B",
+          "ROAD-08B",
+          "ROAD-02B",
+          "ROAD-01B"
+        ],
+        "total_distance_meters": 3750.0,
+        "estimated_travel_time_seconds": 255.6,
+        "estimated_travel_time_minutes": 4.26,
+        "coordinates": [
+          {
+            "latitude": 17.46,
+            "longitude": 78.372
+          },
+          {
+            "latitude": 17.456,
+            "longitude": 78.381
+          },
+          {
+            "latitude": 17.449,
+            "longitude": 78.388
+          },
+          {
+            "latitude": 17.445,
+            "longitude": 78.384
+          },
+          {
+            "latitude": 17.442,
+            "longitude": 78.38
+          }
+        ],
+        "summary": "Alternative path via INT-04 (3.75 km)",
+        "overlap_ratio": 0.17
+      }
+    ],
+    "explanation": "Selected route via 3 segments covering 3.25 km with an estimated travel time of 3.4 minutes using ASTAR optimization. Identified 1 alternative route (Alt #1: 4.3 min (3.75 km, 17% overlap)).",
+    "simulated": true
+  },
+  "emergency_unit_rankings": {
+    "ambulance": [
+      {
+        "unit_id": "AMB-01",
+        "unit_type": "ambulance",
+        "incident_id": "INC-DEMO-001",
+        "target_node": "INT-03",
+        "rank": 1,
+        "score": 156.98,
+        "adjusted_eta_seconds": 64.8,
+        "estimated_travel_time_seconds": 64.8,
+        "estimated_travel_time_minutes": 1.08,
+        "distance_meters": 1350.0,
+        "availability": "available",
+        "capabilities": [
+          "advanced_life_support",
+          "paramedic_crew",
+          "ventilator",
+          "defibrillator"
+        ],
+        "route_nodes": [
+          "INT-04",
+          "INT-03"
+        ],
+        "route_roads": [
+          "ROAD-11B"
+        ],
+        "match_reasons": [
+          "Service type match: ambulance",
+          "Unit status: available",
+          "Adjusted ETA: 1.1 min (1.35 km)",
+          "Advanced Life Support (ALS) equipped"
+        ],
+        "simulated": true
+      },
+      {
+        "unit_id": "AMB-02",
+        "unit_type": "ambulance",
+        "incident_id": "INC-DEMO-001",
+        "target_node": "INT-03",
+        "rank": 2,
+        "score": 31.85,
+        "adjusted_eta_seconds": 312.9,
+        "estimated_travel_time_seconds": 312.9,
+        "estimated_travel_time_minutes": 5.22,
+        "distance_meters": 6950.0,
+        "availability": "available",
+        "capabilities": [
+          "basic_life_support",
+          "emergency_transport"
+        ],
+        "route_nodes": [
+          "INT-13",
+          "INT-08",
+          "INT-14",
+          "INT-06",
+          "INT-03"
+        ],
+        "route_roads": [
+          "ROAD-21B",
+          "ROAD-16B",
+          "ROAD-15B",
+          "ROAD-13B"
+        ],
+        "match_reasons": [
+          "Service type match: ambulance",
+          "Unit status: available",
+          "Adjusted ETA: 5.2 min (6.95 km)"
+        ],
+        "simulated": true
+      }
+    ],
+    "police": [
+      {
+        "unit_id": "POLICE-02",
+        "unit_type": "police",
+        "incident_id": "INC-DEMO-001",
+        "target_node": "INT-03",
+        "rank": 1,
+        "score": 43.76,
+        "adjusted_eta_seconds": 244.3,
+        "estimated_travel_time_seconds": 244.3,
+        "estimated_travel_time_minutes": 4.07,
+        "distance_meters": 4650.0,
+        "availability": "available",
+        "capabilities": [
+          "rapid_response",
+          "crowd_diversion",
+          "motorcycle_escort"
+        ],
+        "route_nodes": [
+          "INT-11",
+          "INT-10",
+          "INT-12",
+          "INT-02",
+          "INT-03"
+        ],
+        "route_roads": [
+          "ROAD-18B",
+          "ROAD-17B",
+          "ROAD-08A",
+          "ROAD-09B"
+        ],
+        "match_reasons": [
+          "Service type match: police",
+          "Unit status: available",
+          "Adjusted ETA: 4.1 min (4.65 km)",
+          "Rapid response rated unit"
+        ],
+        "simulated": true
+      },
+      {
+        "unit_id": "POLICE-01",
+        "unit_type": "police",
+        "incident_id": "INC-DEMO-001",
+        "target_node": "INT-03",
+        "rank": 2,
+        "score": 32.58,
+        "adjusted_eta_seconds": 306.0,
+        "estimated_travel_time_seconds": 306.0,
+        "estimated_travel_time_minutes": 5.1,
+        "distance_meters": 4550.0,
+        "availability": "available",
+        "capabilities": [
+          "traffic_control",
+          "perimeter_security",
+          "incident_investigation"
+        ],
+        "route_nodes": [
+          "INT-05",
+          "INT-01",
+          "INT-19",
+          "INT-12",
+          "INT-02",
+          "INT-03"
+        ],
+        "route_roads": [
+          "ROAD-06B",
+          "ROAD-01A",
+          "ROAD-02A",
+          "ROAD-08A",
+          "ROAD-09B"
+        ],
+        "match_reasons": [
+          "Service type match: police",
+          "Unit status: available",
+          "Adjusted ETA: 5.1 min (4.55 km)"
+        ],
+        "simulated": true
+      }
+    ]
+  },
+  "assigned_unit_id": "AMB-01",
+  "emergency_route": {
+    "origin_node": "INT-04",
+    "destination_node": "INT-03",
+    "algorithm": "astar",
+    "unit_id": "AMB-01",
+    "incident_id": "INC-DEMO-001",
+    "is_emergency_route": true,
+    "road_ids": [
+      "ROAD-11B"
+    ],
+    "node_ids": [
+      "INT-04",
+      "INT-03"
+    ],
+    "estimated_travel_time_seconds": 64.8,
+    "estimated_travel_time_minutes": 1.08,
+    "total_distance_meters": 1350.0,
+    "coordinates": [
+      {
+        "latitude": 17.46,
+        "longitude": 78.372
+      },
+      {
+        "latitude": 17.4485,
+        "longitude": 78.374
+      }
+    ],
+    "blocked_roads_avoided": [],
+    "congestion_avoided": true,
+    "alternative_routes": [
+      {
+        "node_ids": [
+          "INT-04",
+          "INT-02",
+          "INT-03"
+        ],
+        "road_ids": [
+          "ROAD-10B",
+          "ROAD-09B"
+        ],
+        "total_distance_meters": 2450.0,
+        "estimated_travel_time_seconds": 129.1,
+        "estimated_travel_time_minutes": 2.15,
+        "coordinates": [
+          {
+            "latitude": 17.46,
+            "longitude": 78.372
+          },
+          {
+            "latitude": 17.456,
+            "longitude": 78.381
+          },
+          {
+            "latitude": 17.4485,
+            "longitude": 78.374
+          }
+        ],
+        "summary": "Alternative path via INT-04 (2.45 km)",
+        "overlap_ratio": 0.0
+      },
+      {
+        "node_ids": [
+          "INT-04",
+          "INT-02",
+          "INT-15",
+          "INT-14",
+          "INT-06",
+          "INT-03"
+        ],
+        "road_ids": [
+          "ROAD-10B",
+          "ROAD-12A",
+          "ROAD-29B",
+          "ROAD-15B",
+          "ROAD-13B"
+        ],
+        "total_distance_meters": 11100.0,
+        "estimated_travel_time_seconds": 448.9,
+        "estimated_travel_time_minutes": 7.48,
+        "coordinates": [
+          {
+            "latitude": 17.46,
+            "longitude": 78.372
+          },
+          {
+            "latitude": 17.456,
+            "longitude": 78.381
+          },
+          {
+            "latitude": 17.468,
+            "longitude": 78.38
+          },
+          {
+            "latitude": 17.437,
+            "longitude": 78.348
+          },
+          {
+            "latitude": 17.443,
+            "longitude": 78.358
+          },
+          {
+            "latitude": 17.4485,
+            "longitude": 78.374
+          }
+        ],
+        "summary": "Alternative path via INT-02 (11.1 km)",
+        "overlap_ratio": 0.0
+      }
+    ],
+    "explanation": "Selected route via 1 segment covering 1.35 km with an estimated travel time of 1.1 minutes using ASTAR optimization. Emergency priority siren dynamics and green-corridor priority applied. Identified 2 alternative routes (Alt #1: 2.2 min (2.45 km, 0% overlap), Alt #2: 7.5 min (11.1 km, 0% overlap)).",
+    "simulated": true
+  },
+  "emergency_corridor": {
+    "corridor_id": "CORRIDOR-DEMO-01",
+    "unit_id": "AMB-01",
+    "incident_id": "INC-DEMO-001",
+    "route_nodes": [
+      "INT-04",
+      "INT-03"
+    ],
+    "route_roads": [
+      "ROAD-11B"
+    ],
+    "active": true,
+    "signal_prioritized_intersections": [
+      "INT-04",
+      "INT-03"
+    ],
+    "affected_cross_streets": [
+      "ROAD-03A",
+      "ROAD-11A",
+      "ROAD-13B",
+      "ROAD-09B",
+      "ROAD-10A"
+    ],
+    "estimated_duration_seconds": 81.0,
+    "simulated": true
+  },
+  "civilian_diversion_plan": {
+    "incident_id": "INC-DEMO-001",
+    "blocked_road_id": "ROAD-03A",
+    "from_node": "INT-19",
+    "decision_node": "INT-01",
+    "to_node": "INT-03",
+    "road_ids": [
+      "ROAD-01A",
+      "ROAD-02A",
+      "ROAD-08A",
+      "ROAD-09B"
+    ],
+    "node_ids": [
+      "INT-01",
+      "INT-19",
+      "INT-12",
+      "INT-02",
+      "INT-03"
+    ],
+    "detour_distance_meters": 3800.0,
+    "detour_time_seconds": 244.2,
+    "extra_distance_meters": 1900.0,
+    "extra_time_seconds": 122.4,
+    "instructions": "Approaching traffic diverted at decision intersection City Center Square (INT-01) via 4 segments to rejoin at Cyber Gateway Hub (INT-03).",
+    "explanation": "Incident on Cyber Gateway Link (ROAD-03A) blocks traffic from Grand Boulevard Overpass to Cyber Gateway Hub. Detour established from INT-01 adding 1.9 km (+122s).",
+    "affected_arterials": [
+      "Cyber Gateway Link",
+      "Tech Corridor North",
+      "Central Grand Blvd",
+      "Cyber Tech Connector",
+      "Midtown Avenue"
+    ],
+    "simulated": true
+  },
+  "movement_timeline": [
+    {
+      "elapsed_seconds": 0.0,
+      "unit_id": "AMB-01",
+      "status": "en_route",
+      "current_road_id": "ROAD-11B",
+      "current_road_name": "North Gateway Expressway",
+      "current_latitude": 17.46,
+      "current_longitude": 78.372,
+      "distance_travelled_meters": 0.0,
+      "remaining_distance_meters": 1350.0,
+      "remaining_time_seconds": 64.8,
+      "percent_completed": 0.0,
+      "simulated": true
+    },
+    {
+      "elapsed_seconds": 20.0,
+      "unit_id": "AMB-01",
+      "status": "en_route",
+      "current_road_id": "ROAD-11B",
+      "current_road_name": "North Gateway Expressway",
+      "current_latitude": 17.456451,
+      "current_longitude": 78.372617,
+      "distance_travelled_meters": 416.7,
+      "remaining_distance_meters": 933.3,
+      "remaining_time_seconds": 44.8,
+      "percent_completed": 30.9,
+      "simulated": true
+    },
+    {
+      "elapsed_seconds": 40.0,
+      "unit_id": "AMB-01",
+      "status": "en_route",
+      "current_road_id": "ROAD-11B",
+      "current_road_name": "North Gateway Expressway",
+      "current_latitude": 17.452901,
+      "current_longitude": 78.373235,
+      "distance_travelled_meters": 833.3,
+      "remaining_distance_meters": 516.7,
+      "remaining_time_seconds": 24.8,
+      "percent_completed": 61.7,
+      "simulated": true
+    },
+    {
+      "elapsed_seconds": 60.0,
+      "unit_id": "AMB-01",
+      "status": "en_route",
+      "current_road_id": "ROAD-11B",
+      "current_road_name": "North Gateway Expressway",
+      "current_latitude": 17.449352,
+      "current_longitude": 78.373852,
+      "distance_travelled_meters": 1250.0,
+      "remaining_distance_meters": 100.0,
+      "remaining_time_seconds": 4.8,
+      "percent_completed": 92.6,
+      "simulated": true
+    },
+    {
+      "elapsed_seconds": 80.0,
+      "unit_id": "AMB-01",
+      "status": "on_scene",
+      "current_road_id": "ROAD-11B",
+      "current_road_name": "North Gateway Expressway",
+      "current_latitude": 17.4485,
+      "current_longitude": 78.374,
+      "distance_travelled_meters": 1350.0,
+      "remaining_distance_meters": 0.0,
+      "remaining_time_seconds": 0.0,
+      "percent_completed": 100.0,
+      "simulated": true
+    }
+  ],
+  "graph_summary": {
+    "total_nodes": 20,
+    "total_edges": 58,
+    "closed_edges": [
+      "ROAD-03A",
+      "ROAD-03B"
+    ]
+  }
+}

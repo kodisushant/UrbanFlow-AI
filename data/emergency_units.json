@@ -1,0 +1,83 @@
+[
+  {
+    "unit_id": "AMB-01",
+    "type": "ambulance",
+    "location_node": "INT-04",
+    "latitude": 17.46,
+    "longitude": 78.372,
+    "availability": "available",
+    "capabilities": [
+      "advanced_life_support",
+      "paramedic_crew",
+      "ventilator",
+      "defibrillator"
+    ],
+    "speed_factor": 1.25,
+    "busy_until_seconds": 0.0,
+    "simulated": true
+  },
+  {
+    "unit_id": "AMB-02",
+    "type": "ambulance",
+    "location_node": "INT-13",
+    "latitude": 17.422,
+    "longitude": 78.373,
+    "availability": "available",
+    "capabilities": [
+      "basic_life_support",
+      "emergency_transport"
+    ],
+    "speed_factor": 1.25,
+    "busy_until_seconds": 0.0,
+    "simulated": true
+  },
+  {
+    "unit_id": "FIRE-01",
+    "type": "fire_engine",
+    "location_node": "INT-07",
+    "latitude": 17.449,
+    "longitude": 78.355,
+    "availability": "available",
+    "capabilities": [
+      "water_tender",
+      "hydraulic_rescue_cutters",
+      "ladder",
+      "hazmat_containment"
+    ],
+    "speed_factor": 1.2,
+    "busy_until_seconds": 0.0,
+    "simulated": true
+  },
+  {
+    "unit_id": "POLICE-01",
+    "type": "police",
+    "location_node": "INT-05",
+    "latitude": 17.438,
+    "longitude": 78.385,
+    "availability": "available",
+    "capabilities": [
+      "traffic_control",
+      "perimeter_security",
+      "incident_investigation"
+    ],
+    "speed_factor": 1.3,
+    "busy_until_seconds": 0.0,
+    "simulated": true
+  },
+  {
+    "unit_id": "POLICE-02",
+    "type": "police",
+    "location_node": "INT-11",
+    "latitude": 17.452,
+    "longitude": 78.398,
+    "availability": "available",
+    "capabilities": [
+      "rapid_response",
+      "crowd_diversion",
+      "motorcycle_escort"
+    ],
+    "speed_factor": 1.35,
+    "busy_until_seconds": 0.0,
+    "simulated": true
+  }
+]
