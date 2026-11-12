@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Models and weights
+*.pt
+*.onnx
+*_openvino_model/
+
+# Artifacts & Local outputs
+assets/evidence/*.jpg
+assets/benchmark_results.json
+assets/vision_results.json
+assets/demo_results.json
+
+# Environment
+.venv/
+venv/
+ENV/
