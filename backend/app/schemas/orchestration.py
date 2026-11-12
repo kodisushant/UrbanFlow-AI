@@ -1,5 +1,5 @@
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field, ConfigDict
 from app.schemas.incident import IncidentRecord
 from app.schemas.resource import EmergencyUnit
@@ -8,7 +8,7 @@ from app.schemas.route import RouteResult
 
 class AgentActionRecord(BaseModel):
     agent_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     action: str
     summary: str
     structured_output: Dict[str, Any] = Field(default_factory=dict)
@@ -41,3 +41,4 @@ class ScenarioRunRequest(BaseModel):
     auto_verify: bool = Field(default=True, description="Automatically trigger operator verification for 1-click demo")
     operator_id: str = Field(default="AUTO_DISPATCHER_01")
     operator_notes: Optional[str] = Field(default="Automated live verification for demonstration run.")
+

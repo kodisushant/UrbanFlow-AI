@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -28,7 +28,7 @@ class ObservedVehicle(BaseModel):
 
 class IncidentDetectionPayload(BaseModel):
     camera_id: str = Field(..., min_length=1)
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     candidate_type: str = Field(..., description="e.g. possible_collision, stalled_vehicle, road_debris")
     confidence: float = Field(..., ge=0.0, le=1.0)
     location_node: str = Field(..., description="Associated road graph intersection node ID")
@@ -64,11 +64,12 @@ class IncidentRecord(BaseModel):
     longitude: float
     source: str
     evidence_urls: List[str] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     verification_info: Optional[IncidentVerificationRecord] = None
     structured_report: Optional[str] = None
     recommended_service: Optional[str] = None
     assigned_unit_ids: List[str] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
+

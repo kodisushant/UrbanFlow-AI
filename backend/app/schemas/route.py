@@ -55,3 +55,4 @@ class RouteResult(BaseModel):
     explanation: str = Field(..., description="Human-readable rationale for route selection")
 
     model_config = ConfigDict(from_attributes=True)
+

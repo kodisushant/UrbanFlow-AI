@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -13,7 +13,7 @@ class CongestionLevel(str, Enum):
 
 class TrafficObservation(BaseModel):
     road_id: str = Field(..., min_length=1, description="Unique road segment identifier")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     vehicle_count: int = Field(..., ge=0, description="Observed vehicles on segment")
     average_speed_kmph: float = Field(..., ge=0.0, description="Average estimated vehicle speed")
     occupancy_ratio: Optional[float] = Field(None, ge=0.0, le=1.0, description="Lane occupancy percentage")
@@ -25,7 +25,7 @@ class TrafficObservation(BaseModel):
 
 class TrafficForecast(BaseModel):
     road_id: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     current_congestion_level: CongestionLevel
     forecast_15m_level: CongestionLevel
     forecast_30m_level: CongestionLevel
@@ -39,3 +39,4 @@ class TrafficForecast(BaseModel):
     )
 
     model_config = ConfigDict(from_attributes=True)
+

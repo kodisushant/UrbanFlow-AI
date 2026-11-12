@@ -43,3 +43,4 @@ class CityGraph(BaseModel):
     edges: List[RoadSegment]
 
     model_config = ConfigDict(from_attributes=True)
+
