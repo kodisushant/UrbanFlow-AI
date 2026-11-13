@@ -701,6 +701,7 @@ export const App: React.FC = () => {
               <CCTVPanel
                 cameraId={orchestration.active_incident?.source || 'cctv_camera_01'}
                 hasCandidateAlert={!!orchestration.active_incident}
+                incident={orchestration.active_incident}
               />
               <IncidentPanel
                 incident={orchestration.active_incident}

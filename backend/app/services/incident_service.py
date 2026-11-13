@@ -54,6 +54,7 @@ class IncidentService:
             evidence_urls=[payload.evidence_image_url] if payload.evidence_image_url else [],
             patient_count=payload.patient_count or 0,
             scenario_type=payload.scenario_type or ("fire" if "fire" in str(payload.candidate_type).lower() else "accident"),
+            observed_vehicles=payload.observed_vehicles or [],
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc)
         )

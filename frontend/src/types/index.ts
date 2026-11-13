@@ -77,6 +77,7 @@ export interface IncidentRecord {
   structured_report?: string;
   recommended_service?: string;
   assigned_unit_ids: string[];
+  observed_vehicles?: ObservedVehicle[];
 }
 
 export type ResourceType = 'ambulance' | 'fire_engine' | 'police_patrol';

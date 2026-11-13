@@ -100,6 +100,7 @@ class IncidentRecord(BaseModel):
     assigned_unit_ids: List[str] = Field(default_factory=list)
     patient_count: int = Field(default=0, description="Reported or triage patient count")
     scenario_type: Optional[str] = Field(default="accident", description="accident | fire")
+    observed_vehicles: List[ObservedVehicle] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def sync_record_fields(self):

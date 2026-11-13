@@ -417,11 +417,11 @@ class WorkflowCoordinator:
             patient_count=patient_count,
             scenario_type=scen_type,
             evidence_urls=[
-                "assets/evidence/INC-CCTV-001_frame_426.jpg",
-                "assets/evidence/INC-CCTV-001_crop_14_19.jpg"
+                "/assets/incident_evidence.jpg"
             ],
             observed_vehicles=[
-                ObservedVehicle(vehicle_class="car", bbox=[120, 240, 200, 310], speed_kmph=0.0, is_stopped=True)
+                ObservedVehicle(vehicle_class="car", bbox=[90, 60, 190, 130], speed_kmph=0.0, is_stopped=True),
+                ObservedVehicle(vehicle_class="truck", bbox=[150, 50, 310, 150], speed_kmph=0.0, is_stopped=True)
             ],
             is_simulated=True
         )
