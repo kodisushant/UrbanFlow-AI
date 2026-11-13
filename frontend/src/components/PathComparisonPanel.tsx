@@ -9,6 +9,9 @@ import {
   XCircle,
   ShieldCheck,
   Zap,
+  Play,
+  Pause,
+  RotateCcw,
 } from 'lucide-react';
 import { FindPathResult, ComparePathsResult } from '../types';
 
@@ -17,6 +20,19 @@ interface PathComparisonPanelProps {
   baselineRoute: FindPathResult | null;
   comparison: ComparePathsResult | null;
   isComputing: boolean;
+  // Animation props
+  isRaceAnimating?: boolean;
+  isRacePaused?: boolean;
+  onStartRace?: () => void;
+  onPauseRace?: () => void;
+  onResumeRace?: () => void;
+  onResetRace?: () => void;
+  raceSpeed?: number;
+  onRaceSpeedChange?: (speed: number) => void;
+  optArrived?: boolean;
+  baseArrived?: boolean;
+  optElapsedTimeSec?: number;
+  baseElapsedTimeSec?: number;
 }
 
 export const PathComparisonPanel: React.FC<PathComparisonPanelProps> = ({
@@ -24,6 +40,18 @@ export const PathComparisonPanel: React.FC<PathComparisonPanelProps> = ({
   baselineRoute,
   comparison,
   isComputing,
+  isRaceAnimating = false,
+  isRacePaused = false,
+  onStartRace,
+  onPauseRace,
+  onResumeRace,
+  onResetRace,
+  raceSpeed = 1,
+  onRaceSpeedChange,
+  optArrived = false,
+  baseArrived = false,
+  optElapsedTimeSec = 0,
+  baseElapsedTimeSec = 0,
 }) => {
   // Empty State before any computation
   if (!optimisedRoute && !baselineRoute) {
@@ -85,6 +113,98 @@ export const PathComparisonPanel: React.FC<PathComparisonPanelProps> = ({
             <span>Outcome Summary</span>
           </div>
           <span>{comparison.summary}</span>
+        </div>
+      )}
+
+      {/* Race Simulation Controls (Phase 3) */}
+      {(optimisedRoute || baselineRoute) && (
+        <div className="bg-slate-950/70 border border-slate-800 rounded-lg p-3 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center space-x-1.5">
+              <span>🏎️</span>
+              <span>Route Simulation Race</span>
+            </span>
+            {/* Speed Multiplier selector (1x, 2x, 4x) */}
+            <div className="flex items-center space-x-1 bg-slate-900 border border-slate-700/60 rounded p-0.5">
+              {[1, 2, 4].map((spd) => (
+                <button
+                  key={spd}
+                  onClick={() => onRaceSpeedChange && onRaceSpeedChange(spd)}
+                  className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${
+                    raceSpeed === spd ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {spd}x
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            {!isRaceAnimating ? (
+              <button
+                onClick={onStartRace}
+                className="flex-1 py-1.5 px-3 rounded text-xs font-bold uppercase tracking-wider bg-cyan-600 hover:bg-cyan-500 text-white flex items-center justify-center space-x-1.5 shadow-md shadow-cyan-950"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Race Routes</span>
+              </button>
+            ) : isRacePaused ? (
+              <button
+                onClick={onResumeRace}
+                className="flex-1 py-1.5 px-3 rounded text-xs font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center space-x-1.5 shadow-md"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Resume</span>
+              </button>
+            ) : (
+              <button
+                onClick={onPauseRace}
+                className="flex-1 py-1.5 px-3 rounded text-xs font-bold uppercase tracking-wider bg-amber-600 hover:bg-amber-500 text-white flex items-center justify-center space-x-1.5 shadow-md"
+              >
+                <Pause className="w-3.5 h-3.5" />
+                <span>Pause</span>
+              </button>
+            )}
+
+            <button
+              onClick={onResetRace}
+              className="py-1.5 px-2.5 rounded text-xs font-bold uppercase bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center space-x-1"
+              title="Reset Race"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Replay</span>
+            </button>
+          </div>
+
+          {/* Live Progress / Arrived status per vehicle */}
+          <div className="space-y-1.5 pt-1 text-xs font-mono">
+            {optimisedRoute && (
+              <div className="flex items-center justify-between bg-slate-900/60 px-2 py-1 rounded border border-cyan-900/40">
+                <span className="text-cyan-400 font-semibold flex items-center space-x-1">
+                  <span>⚡ Optimised:</span>
+                </span>
+                <span className={optArrived ? 'text-emerald-400 font-bold' : 'text-slate-200'}>
+                  {optArrived ? `Arrived! (${(optElapsedTimeSec / 60).toFixed(1)}m)` : `${(optElapsedTimeSec / 60).toFixed(1)} min elapsed`}
+                </span>
+              </div>
+            )}
+            {baselineRoute && (
+              <div className="flex items-center justify-between bg-slate-900/60 px-2 py-1 rounded border border-amber-900/40">
+                <span className="text-amber-400 font-semibold flex items-center space-x-1">
+                  <span>🧭 Baseline:</span>
+                </span>
+                <span className={baseArrived ? 'text-emerald-400 font-bold' : 'text-slate-200'}>
+                  {baseArrived ? `Arrived! (${(baseElapsedTimeSec / 60).toFixed(1)}m)` : `${(baseElapsedTimeSec / 60).toFixed(1)} min elapsed`}
+                </span>
+              </div>
+            )}
+            {optArrived && baseArrived && (
+              <div className="text-[11px] font-sans font-bold text-center text-emerald-400 pt-0.5">
+                🏁 Race Complete! A* Optimised arrived {Math.max(0, +((baseElapsedTimeSec - optElapsedTimeSec) / 60).toFixed(1))} min earlier.
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -223,20 +343,20 @@ export const PathComparisonPanel: React.FC<PathComparisonPanelProps> = ({
       <div className="bg-slate-950/50 border border-slate-800/80 rounded-lg p-3 space-y-2">
         <div className="flex items-center space-x-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
           <Cpu className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Algorithmic Execution Stats</span>
+          <span>A* Algorithmic Stats</span>
         </div>
 
         <div className="space-y-1.5 text-[11px] text-slate-300 font-mono">
           {optimisedRoute && (
             <div className="flex items-center justify-between border-b border-slate-800/50 pb-1">
-              <span className="text-slate-400">Optimised ({optimisedRoute.algorithm}):</span>
-              <span>{optimisedRoute.nodes_explored} nodes • {optimisedRoute.compute_ms}ms</span>
+              <span className="text-slate-400">Nodes Explored:</span>
+              <span className="font-bold text-cyan-400">{optimisedRoute.nodes_explored} nodes</span>
             </div>
           )}
-          {baselineRoute && (
+          {optimisedRoute && (
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Baseline (Distance):</span>
-              <span>{baselineRoute.nodes_explored} nodes • {baselineRoute.compute_ms}ms</span>
+              <span className="text-slate-400">Compute Time:</span>
+              <span className="font-bold text-cyan-400">{optimisedRoute.compute_ms} ms</span>
             </div>
           )}
         </div>

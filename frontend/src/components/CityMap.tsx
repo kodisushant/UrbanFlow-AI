@@ -91,6 +91,20 @@ const createPointMarkerIcon = (label: 'A' | 'B', color: string) => {
   });
 };
 
+// Custom Animated Route Vehicle Icon (Cyan = Optimised, Amber = Baseline)
+const createRouteVehicleIcon = (color: string, label: string) => {
+  return L.divIcon({
+    className: 'custom-route-vehicle',
+    html: `
+      <div class="relative flex items-center justify-center w-8 h-8 rounded-full shadow-2xl border-2 border-white text-xs font-bold text-white transition-transform" style="background-color: ${color}; box-shadow: 0 0 16px ${color};">
+        <span class="text-sm select-none">${label}</span>
+      </div>
+    `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
+};
+
 interface CityMapProps {
   cityGraph: CityGraph;
   activeIncident: IncidentRecord | null;
@@ -106,17 +120,24 @@ interface CityMapProps {
   onMapNodeClick?: (node: IntersectionNode) => void;
   findPathOptimised?: FindPathResult | null;
   findPathBaseline?: FindPathResult | null;
+  // Route animation states
+  animProgressOpt?: number; // 0.0 to 1.0
+  animProgressBase?: number; // 0.0 to 1.0
+  animPosOpt?: [number, number] | null;
+  animPosBase?: [number, number] | null;
+  baseBlockedPause?: boolean;
 }
 
-// Map Click Listener component that finds nearest node
-const MapNodeClickHandler: React.FC<{
+// Map Click Listener component that finds nearest node and tracks zoom
+const MapEventsHandler: React.FC<{
   nodes: IntersectionNode[];
-  onNodeSelect: (node: IntersectionNode) => void;
+  onNodeSelect?: (node: IntersectionNode) => void;
   enabled: boolean;
-}> = ({ nodes, onNodeSelect, enabled }) => {
+  onZoomChange: (zoom: number) => void;
+}> = ({ nodes, onNodeSelect, enabled, onZoomChange }) => {
   useMapEvents({
     click(e) {
-      if (!enabled || !nodes.length) return;
+      if (!enabled || !nodes.length || !onNodeSelect) return;
       const { lat, lng } = e.latlng;
       let nearest = nodes[0];
       let minSqDist = (nearest.latitude - lat) ** 2 + (nearest.longitude - lng) ** 2;
@@ -130,6 +151,9 @@ const MapNodeClickHandler: React.FC<{
         }
       }
       onNodeSelect(nearest);
+    },
+    zoomend(e) {
+      onZoomChange(e.target.getZoom());
     },
   });
   return null;
@@ -149,11 +173,17 @@ export const CityMap: React.FC<CityMapProps> = ({
   onMapNodeClick,
   findPathOptimised = null,
   findPathBaseline = null,
+  animProgressOpt = 0.0,
+  animProgressBase = 0.0,
+  animPosOpt = null,
+  animPosBase = null,
+  baseBlockedPause = false,
 }) => {
   const [showCongestion, setShowCongestion] = useState(true);
   const [showSignals, setShowSignals] = useState(true);
   const [showUnits, setShowUnits] = useState(true);
   const [showRoutes, setShowRoutes] = useState(true);
+  const [currentZoom, setCurrentZoom] = useState<number>(14);
 
   // Map center default (Cyber City / Hyderabad)
   const defaultCenter: [number, number] = [17.445, 78.375];
@@ -261,14 +291,13 @@ export const CityMap: React.FC<CityMapProps> = ({
           className="dark-tiles"
         />
 
-        {/* Map Click Handler for Node Snapping in Find Path Mode */}
-        {isFindPathMode && onMapNodeClick && (
-          <MapNodeClickHandler
-            nodes={cityGraph.nodes}
-            onNodeSelect={onMapNodeClick}
-            enabled={isFindPathMode}
-          />
-        )}
+        {/* Map Click & Zoom Handler */}
+        <MapEventsHandler
+          nodes={cityGraph.nodes}
+          onNodeSelect={isFindPathMode ? onMapNodeClick : undefined}
+          enabled={isFindPathMode}
+          onZoomChange={(z) => setCurrentZoom(z)}
+        />
 
         {/* 1. Road Network Congestion Layer */}
         {showCongestion &&
@@ -362,6 +391,12 @@ export const CityMap: React.FC<CityMapProps> = ({
         {showSignals &&
           cityGraph.nodes.map((node) => {
             const isCorridor = activeCorridorNodes.includes(node.node_id);
+            // Render dots only for signalised / major intersections or when zoomed in (>= 15) to avoid clutter
+            const isMajor = node.is_signalized || isCorridor || node.node_id in ['INT-01', 'INT-02', 'INT-03', 'INT-04', 'INT-05', 'INT-07', 'INT-11', 'INT-13'];
+            if (!isCorridor && !isMajor && currentZoom < 15) {
+              return null;
+            }
+
             const fillColor = isCorridor
               ? '#22c55e'
               : node.signal_state === 'caution_flashing'
@@ -441,7 +476,11 @@ export const CityMap: React.FC<CityMapProps> = ({
                     </div>
                   )}
                   {unit.status === 'on_scene' && (
-                    <div className="text-emerald-400 font-semibold text-[10px]">Arrived on scene</div>
+                    <div className="text-emerald-400 font-semibold text-[10px]">
+                      {(unit as any).subphase_name
+                        ? (unit as any).subphase_name.replace(/_/g, ' ').toUpperCase()
+                        : 'On Scene Operations'}
+                    </div>
                   )}
                   {unit.status === 'loading' && (
                     <div className="text-amber-400 font-semibold text-[10px]">Loading patient(s)...</div>
@@ -489,63 +528,98 @@ export const CityMap: React.FC<CityMapProps> = ({
           </Marker>
         )}
 
-        {/* 8. Find Path Mode: Baseline Route (Dashed amber/orange line) */}
+        {/* 8. Find Path Mode: Baseline Route (Dashed amber/orange line with travelled part solid) */}
         {isFindPathMode && findPathBaseline && findPathBaseline.geometry && findPathBaseline.geometry.length > 1 && (
-          <Polyline
-            positions={findPathBaseline.geometry}
-            pathOptions={{
-              color: '#f59e0b',
-              weight: 5,
-              dashArray: '8, 8',
-              opacity: 0.9,
-              lineCap: 'round',
-            }}
-          >
-            <Popup>
-              <div className="p-1 text-xs">
-                <div className="font-bold text-amber-400 flex items-center space-x-1">
-                  <span>🧭</span>
-                  <span>Baseline Route (Shortest Distance)</span>
-                </div>
-                <div>Time: <strong>{findPathBaseline.estimated_travel_time_minutes} min</strong> ({findPathBaseline.estimated_travel_time_seconds}s)</div>
-                <div>Distance: {findPathBaseline.total_distance_km} km</div>
-                <div>Congested Segments: {findPathBaseline.congested_segments_count}</div>
-                {findPathBaseline.has_blocked_segments && (
-                  <div className="text-rose-400 font-bold mt-1">
-                    ⚠️ Hits {findPathBaseline.blocked_roads_count} blocked road(s) (+{findPathBaseline.detour_penalty_applied_seconds}s detour penalty)
-                  </div>
+          <>
+            {/* Background / Remaining Faded Route */}
+            <Polyline
+              positions={findPathBaseline.geometry}
+              pathOptions={{
+                color: '#f59e0b',
+                weight: 5,
+                dashArray: '8, 8',
+                opacity: animProgressBase > 0 ? 0.35 : 0.9,
+                lineCap: 'round',
+              }}
+            />
+            {/* Solid Travelled Portion */}
+            {animProgressBase > 0 && (
+              <Polyline
+                positions={findPathBaseline.geometry.slice(
+                  0,
+                  Math.max(2, Math.floor(findPathBaseline.geometry.length * animProgressBase) + 1)
                 )}
-              </div>
-            </Popup>
-          </Polyline>
+                pathOptions={{
+                  color: '#f59e0b',
+                  weight: 5,
+                  opacity: 0.95,
+                  lineCap: 'round',
+                }}
+              />
+            )}
+          </>
         )}
 
-        {/* 9. Find Path Mode: Optimised Route (Thick solid cyan line) */}
+        {/* 9. Find Path Mode: Optimised Route (Thick cyan line with travelled part solid) */}
         {isFindPathMode && findPathOptimised && findPathOptimised.geometry && findPathOptimised.geometry.length > 1 && (
-          <Polyline
-            positions={findPathOptimised.geometry}
-            pathOptions={{
-              color: '#06b6d4',
-              weight: 7,
-              opacity: 0.95,
-              lineCap: 'round',
-              lineJoin: 'round',
-            }}
+          <>
+            {/* Background / Remaining Faded Route */}
+            <Polyline
+              positions={findPathOptimised.geometry}
+              pathOptions={{
+                color: '#06b6d4',
+                weight: 7,
+                opacity: animProgressOpt > 0 ? 0.35 : 0.95,
+                lineCap: 'round',
+                lineJoin: 'round',
+              }}
+            />
+            {/* Solid Travelled Portion */}
+            {animProgressOpt > 0 && (
+              <Polyline
+                positions={findPathOptimised.geometry.slice(
+                  0,
+                  Math.max(2, Math.floor(findPathOptimised.geometry.length * animProgressOpt) + 1)
+                )}
+                pathOptions={{
+                  color: '#06b6d4',
+                  weight: 7,
+                  opacity: 1.0,
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                }}
+              />
+            )}
+          </>
+        )}
+
+        {/* 10. Find Path Mode: Animated Vehicle Markers */}
+        {isFindPathMode && animPosOpt && (
+          <Marker
+            position={animPosOpt}
+            icon={createRouteVehicleIcon('#06b6d4', '⚡')}
           >
-            <Popup>
-              <div className="p-1 text-xs">
-                <div className="font-bold text-cyan-400 flex items-center space-x-1">
-                  <span>⚡</span>
-                  <span>Optimised Route ({findPathOptimised.algorithm.toUpperCase()})</span>
-                </div>
-                <div>Time: <strong>{findPathOptimised.estimated_travel_time_minutes} min</strong> ({findPathOptimised.estimated_travel_time_seconds}s)</div>
-                <div>Distance: {findPathOptimised.total_distance_km} km</div>
-                <div>Congested Segments: {findPathOptimised.congested_segments_count}</div>
-                <div>Road Closures Avoided: {findPathOptimised.blocked_roads_count === 0 ? 'All closures avoided' : '0'}</div>
-                <div className="text-[10px] text-slate-400 mt-1">Explored {findPathOptimised.nodes_explored} nodes in {findPathOptimised.compute_ms}ms</div>
+            <Tooltip direction="top" offset={[0, -10]} permanent>
+              <div className="text-[10px] font-bold text-cyan-300 bg-slate-950 px-1 py-0.5 rounded border border-cyan-500/50">
+                A* Optimised ({Math.round(animProgressOpt * 100)}%)
               </div>
-            </Popup>
-          </Polyline>
+            </Tooltip>
+          </Marker>
+        )}
+
+        {isFindPathMode && animPosBase && (
+          <Marker
+            position={animPosBase}
+            icon={createRouteVehicleIcon('#f59e0b', '🧭')}
+          >
+            <Tooltip direction="top" offset={[0, -10]} permanent>
+              <div className={`text-[10px] font-bold bg-slate-950 px-1 py-0.5 rounded border ${
+                baseBlockedPause ? 'text-rose-400 border-rose-500 animate-pulse' : 'text-amber-300 border-amber-500/50'
+              }`}>
+                {baseBlockedPause ? '⚠️ Blocked — Rerouting delay' : `Baseline (${Math.round(animProgressBase * 100)}%)`}
+              </div>
+            </Tooltip>
+          </Marker>
         )}
       </MapContainer>
 

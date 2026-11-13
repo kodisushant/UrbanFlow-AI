@@ -26,6 +26,8 @@ class EmergencyUnit(BaseModel):
     patient_count: int = 0
     phase_start_time: Optional[float] = None
     phase_duration_seconds: Optional[float] = None
+    subphase_index: int = 0
+    subphase_name: Optional[str] = None
 
     @model_validator(mode="after")
     def sync_names_and_types(self):

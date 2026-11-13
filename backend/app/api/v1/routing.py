@@ -15,6 +15,8 @@ from app.schemas.route import (
     SegmentCongestionInfo,
     RandomizeTrafficRequest,
     RandomizeTrafficResult,
+    CongestBaselineRequest,
+    CongestBaselineResult,
 )
 from app.services.city_graph_service import city_graph_service
 from app.services.resource_service import resource_service
@@ -401,13 +403,67 @@ async def randomize_traffic(req: RandomizeTrafficRequest = RandomizeTrafficReque
     """
     Sets random congestion levels on roads and blocks 2-4 roads for realistic comparison testing.
     """
-    seed, blocked, congested = city_graph_service.randomize_traffic_conditions(
-        seed=req.seed,
-        num_blocked=req.num_blocked_roads
-    )
-    return RandomizeTrafficResult(
-        status="traffic_randomized",
-        seed_used=seed,
-        blocked_roads=blocked,
-        congested_roads_count=congested,
-    )
+    try:
+        seed, blocked, congested, details = city_graph_service.randomize_traffic_conditions(
+            seed=req.seed,
+            num_blocked=req.num_blocked_roads
+        )
+        return RandomizeTrafficResult(
+            status="traffic_randomized",
+            seed_used=seed,
+            blocked_roads=blocked,
+            congested_roads_count=congested,
+            congested_roads=details,
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger("urbanflow.routing").exception(f"Failed to randomize traffic: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to randomize traffic: {str(e)}"
+        )
+
+
+@router.post("/congest-baseline", response_model=CongestBaselineResult)
+async def congest_baseline_route(req: CongestBaselineRequest) -> CongestBaselineResult:
+    """
+    Demo scenario helper: applies heavy congestion and blocks one road strictly
+    along the distance-shortest path between from_node and to_node.
+    """
+    try:
+        resolved_from = city_graph_service._resolve_node_id(req.from_node)
+        resolved_to = city_graph_service._resolve_node_id(req.to_node)
+
+        if resolved_from not in city_graph_service.nodes or resolved_to not in city_graph_service.nodes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid node: '{req.from_node}' or '{req.to_node}' not found in city graph."
+            )
+
+        congested, blocked = city_graph_service.congest_path(resolved_from, resolved_to)
+        if not congested:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No baseline path exists between {req.from_node} and {req.to_node} to congest."
+            )
+
+        return CongestBaselineResult(
+            status="baseline_congested",
+            from_node=req.from_node,
+            to_node=req.to_node,
+            congested_roads=congested,
+            blocked_road=blocked,
+            message=(
+                f"Demo scenario applied: {len(congested)} road segments congested, "
+                f"and road '{blocked}' closed on the baseline route."
+            ),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.getLogger("urbanflow.routing").exception(f"Failed to congest baseline: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to apply baseline congestion: {str(e)}"
+        )

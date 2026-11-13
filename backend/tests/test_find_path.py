@@ -39,13 +39,13 @@ class TestFindPathAndComparison(unittest.TestCase):
             self.assertAlmostEqual(opt.estimated_travel_time_seconds, base.estimated_travel_time_seconds, delta=1.0)
             self.assertEqual(opt.node_sequence, base.node_sequence)
 
-    def test_02_random_traffic_10_pairs_optimised_time_le_baseline(self):
+    def test_02_random_traffic_20_pairs_optimised_time_le_baseline(self):
         """
-        With random traffic on, 10 random from/to pairs:
+        With random traffic on, 20 random from/to pairs:
         optimised time is <= baseline time in every case (assert in a backend test; if ever greater, that's a bug).
         """
         # Randomize traffic with a known seed
-        seed, blocked, congested = city_graph_service.randomize_traffic_conditions(seed=42, num_blocked=3)
+        seed, blocked, congested, _ = city_graph_service.randomize_traffic_conditions(seed=42, num_blocked=3)
         self.assertGreaterEqual(len(blocked), 1)
 
         nodes = [nid for nid in city_graph_service.nodes.keys() if len(city_graph_service.adjacency.get(nid, [])) > 0]
@@ -53,7 +53,7 @@ class TestFindPathAndComparison(unittest.TestCase):
 
         tested = 0
         attempts = 0
-        while tested < 10 and attempts < 100:
+        while tested < 20 and attempts < 200:
             attempts += 1
             u, v = rng.sample(nodes, 2)
             opt = _compute_single_path(from_node=u, to_node=v, mode="optimised", algorithm="astar")
@@ -70,7 +70,46 @@ class TestFindPathAndComparison(unittest.TestCase):
             )
             tested += 1
 
-        self.assertEqual(tested, 10, "Should have tested 10 reachable random pairs")
+        self.assertEqual(tested, 20, "Should have tested 20 reachable random pairs")
+
+    def test_05_randomize_traffic_endpoint_seeds(self):
+        """Test randomize traffic endpoint with None, 0, 42, and large seed."""
+        import asyncio
+        from app.api.v1.routing import randomize_traffic, RandomizeTrafficRequest
+
+        async def run_calls():
+            for s in [None, 0, 42, 987654321]:
+                req = RandomizeTrafficRequest(seed=s)
+                res = await randomize_traffic(req)
+                self.assertEqual(res.status, "traffic_randomized")
+                self.assertIsInstance(res.seed_used, int)
+                self.assertGreater(len(res.blocked_roads), 0)
+                self.assertGreater(res.congested_roads_count, 0)
+
+        asyncio.run(run_calls())
+
+    def test_06_congest_baseline_endpoint(self):
+        """Test congesting the baseline route specifically between two nodes."""
+        import asyncio
+        from app.api.v1.routing import congest_baseline_route, CongestBaselineRequest
+
+        nodes = list(city_graph_service.nodes.keys())
+        u = nodes[0]
+        v = nodes[5]
+
+        async def run_congest():
+            res = await congest_baseline_route(CongestBaselineRequest(from_node=u, to_node=v))
+            self.assertEqual(res.status, "baseline_congested")
+            self.assertGreater(len(res.congested_roads), 0)
+            self.assertIsNotNone(res.blocked_road)
+
+            # Re-evaluate baseline and optimised
+            opt = _compute_single_path(u, v, mode="optimised")
+            base = _compute_single_path(u, v, mode="baseline")
+            self.assertTrue(base.has_blocked_segments)
+            self.assertLess(opt.estimated_travel_time_seconds, base.estimated_travel_time_seconds)
+
+        asyncio.run(run_congest())
 
     def test_03_baseline_blocked_road_flagged_and_penalised(self):
         """A blocked road on the baseline path is flagged and penalised with detour penalty."""
@@ -125,6 +164,32 @@ class TestFindPathAndComparison(unittest.TestCase):
         from fastapi import HTTPException
         with self.assertRaises(HTTPException):
             _compute_single_path(from_node="INVALID_XYZ", to_node=u, mode="optimised")
+
+    def test_07_astar_matches_dijkstra_oracle_on_50_pairs(self):
+        """Assert A* and Dijkstra return identical travel time cost on 50 random pairs."""
+        nodes = [nid for nid in city_graph_service.nodes.keys() if len(city_graph_service.adjacency.get(nid, [])) > 0]
+        rng = random.Random(42)
+
+        tested = 0
+        attempts = 0
+        while tested < 50 and attempts < 1000:
+            attempts += 1
+            u, v = rng.sample(nodes, 2)
+            opt_astar = _compute_single_path(from_node=u, to_node=v, mode="optimised", algorithm="astar")
+            opt_dijkstra = _compute_single_path(from_node=u, to_node=v, mode="optimised", algorithm="dijkstra")
+
+            if not opt_astar.is_reachable or not opt_dijkstra.is_reachable:
+                continue
+
+            self.assertAlmostEqual(
+                opt_astar.estimated_travel_time_seconds,
+                opt_dijkstra.estimated_travel_time_seconds,
+                delta=1.0,
+                msg=f"A* and Dijkstra cost differ for {u} -> {v}: A*={opt_astar.estimated_travel_time_seconds}s, Dijkstra={opt_dijkstra.estimated_travel_time_seconds}s"
+            )
+            tested += 1
+
+        self.assertEqual(tested, 50, "Should test 50 pairs against Dijkstra oracle")
 
 
 if __name__ == "__main__":

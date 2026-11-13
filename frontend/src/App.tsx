@@ -54,12 +54,38 @@ export const App: React.FC = () => {
   const [fromNode, setFromNode] = useState<IntersectionNode | null>(null);
   const [toNode, setToNode] = useState<IntersectionNode | null>(null);
   const [selectionStep, setSelectionStep] = useState<'from' | 'to'>('from');
-  const [findPathAlgorithm, setFindPathAlgorithm] = useState<'astar' | 'dijkstra'>('astar');
   const [optimisedRoute, setOptimisedRoute] = useState<FindPathResult | null>(null);
   const [baselineRoute, setBaselineRoute] = useState<FindPathResult | null>(null);
   const [comparisonResult, setComparisonResult] = useState<ComparePathsResult | null>(null);
   const [isPathComputing, setIsPathComputing] = useState<boolean>(false);
   const [reachabilityError, setReachabilityError] = useState<string | null>(null);
+
+  // Phase 3 Route Animation / Race Simulation State
+  const [isRaceAnimating, setIsRaceAnimating] = useState<boolean>(false);
+  const [isRacePaused, setIsRacePaused] = useState<boolean>(false);
+  const [raceSpeed, setRaceSpeed] = useState<number>(1);
+  const [animProgressOpt, setAnimProgressOpt] = useState<number>(0.0);
+  const [animProgressBase, setAnimProgressBase] = useState<number>(0.0);
+  const [animPosOpt, setAnimPosOpt] = useState<[number, number] | null>(null);
+  const [animPosBase, setAnimPosBase] = useState<[number, number] | null>(null);
+  const [baseBlockedPause, setBaseBlockedPause] = useState<boolean>(false);
+  const [optArrived, setOptArrived] = useState<boolean>(false);
+  const [baseArrived, setBaseArrived] = useState<boolean>(false);
+  const [optElapsedTimeSec, setOptElapsedTimeSec] = useState<number>(0);
+  const [baseElapsedTimeSec, setBaseElapsedTimeSec] = useState<number>(0);
+
+  // Animation frame ref for clean cancellation
+  const animFrameRef = React.useRef<number | null>(null);
+  const animStateRef = React.useRef({
+    startTime: 0,
+    pausedTime: 0,
+    isPaused: false,
+    speed: 1,
+    optDuration: 0,
+    baseDuration: 0,
+    hasBlock: false,
+    blockRatio: 0.5,
+  });
 
   // Subscribe to backend connectivity status & toast alerts
   useEffect(() => {
@@ -183,7 +209,249 @@ export const App: React.FC = () => {
     }
   };
 
+  const stopRaceAnimation = () => {
+    if (animFrameRef.current !== null) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    setIsRaceAnimating(false);
+    setIsRacePaused(false);
+  };
+
+  const handleResetRace = () => {
+    stopRaceAnimation();
+    setAnimProgressOpt(0.0);
+    setAnimProgressBase(0.0);
+    setAnimPosOpt(null);
+    setAnimPosBase(null);
+    setBaseBlockedPause(false);
+    setOptArrived(false);
+    setBaseArrived(false);
+    setOptElapsedTimeSec(0);
+    setBaseElapsedTimeSec(0);
+  };
+
+  // Clean up animation on unmount or mode switch
+  useEffect(() => {
+    return () => {
+      if (animFrameRef.current !== null) {
+        cancelAnimationFrame(animFrameRef.current);
+      }
+    };
+  }, []);
+
+  // Helper to interpolate along polyline geometry by progress (0 to 1)
+  const interpolateAlongGeometry = (
+    geometry: [number, number][],
+    progress: number
+  ): [number, number] => {
+    if (!geometry || geometry.length === 0) return [17.4485, 78.374];
+    if (geometry.length === 1 || progress <= 0) return geometry[0];
+    if (progress >= 1) return geometry[geometry.length - 1];
+
+    const segLens: number[] = [];
+    let totalLen = 0;
+    for (let i = 0; i < geometry.length - 1; i++) {
+      const d = Math.hypot(
+        geometry[i + 1][0] - geometry[i][0],
+        geometry[i + 1][1] - geometry[i][1]
+      );
+      segLens.push(d);
+      totalLen += d;
+    }
+    if (totalLen <= 0) return geometry[0];
+
+    const targetDist = progress * totalLen;
+    let accumulated = 0;
+    for (let i = 0; i < segLens.length; i++) {
+      if (accumulated + segLens[i] >= targetDist) {
+        const segProgress = (targetDist - accumulated) / segLens[i];
+        return [
+          geometry[i][0] + segProgress * (geometry[i + 1][0] - geometry[i][0]),
+          geometry[i][1] + segProgress * (geometry[i + 1][1] - geometry[i][1]),
+        ];
+      }
+      accumulated += segLens[i];
+    }
+    return geometry[geometry.length - 1];
+  };
+
+  const handleStartRace = () => {
+    stopRaceAnimation();
+    if (!optimisedRoute && !baselineRoute) return;
+
+    // Simulation scale: 1 simulated minute = 1 real second = 1000ms
+    // Real travel times are in seconds. Simulated duration in ms = (travel_time_seconds / 60) * 1000 = travel_time_seconds * 16.666ms
+    const optDuration = (optimisedRoute?.estimated_travel_time_seconds || 60) * 16.666;
+    const baseDuration = (baselineRoute?.estimated_travel_time_seconds || 90) * 16.666;
+    const hasBlock = baselineRoute?.has_blocked_segments || false;
+
+    animStateRef.current = {
+      startTime: performance.now(),
+      pausedTime: 0,
+      isPaused: false,
+      speed: raceSpeed,
+      optDuration,
+      baseDuration,
+      hasBlock,
+      blockRatio: 0.5,
+    };
+
+    setIsRaceAnimating(true);
+    setIsRacePaused(false);
+    setOptArrived(false);
+    setBaseArrived(false);
+    setBaseBlockedPause(false);
+
+    const step = (now: number) => {
+      if (animStateRef.current.isPaused) return;
+
+      const elapsed = (now - animStateRef.current.startTime) * animStateRef.current.speed;
+
+      // 1. Optimised Vehicle Progress
+      let pOpt = Math.min(1.0, elapsed / animStateRef.current.optDuration);
+      if (optimisedRoute?.geometry?.length) {
+        setAnimProgressOpt(pOpt);
+        setAnimPosOpt(interpolateAlongGeometry(optimisedRoute.geometry, pOpt));
+        const elapsedSecOpt = Math.min(
+          optimisedRoute.estimated_travel_time_seconds,
+          (elapsed / animStateRef.current.optDuration) * optimisedRoute.estimated_travel_time_seconds
+        );
+        setOptElapsedTimeSec(elapsedSecOpt);
+        if (pOpt >= 1.0) setOptArrived(true);
+      }
+
+      // 2. Baseline Vehicle Progress with Block Pause
+      let pBase = 0.0;
+      if (baselineRoute?.geometry?.length) {
+        if (animStateRef.current.hasBlock) {
+          // Pause at 50% for detour penalty duration
+          const preBlockDuration = animStateRef.current.baseDuration * 0.45;
+          const pauseDuration = 4000; // 4s visible blocked delay
+          if (elapsed < preBlockDuration) {
+            pBase = (elapsed / preBlockDuration) * 0.5;
+            setBaseBlockedPause(false);
+          } else if (elapsed < preBlockDuration + pauseDuration) {
+            pBase = 0.5;
+            setBaseBlockedPause(true);
+          } else {
+            setBaseBlockedPause(false);
+            const postElapsed = elapsed - (preBlockDuration + pauseDuration);
+            const postDuration = animStateRef.current.baseDuration * 0.55;
+            pBase = 0.5 + Math.min(0.5, (postElapsed / postDuration) * 0.5);
+          }
+        } else {
+          pBase = Math.min(1.0, elapsed / animStateRef.current.baseDuration);
+        }
+
+        setAnimProgressBase(pBase);
+        setAnimPosBase(interpolateAlongGeometry(baselineRoute.geometry, pBase));
+        const elapsedSecBase = Math.min(
+          baselineRoute.estimated_travel_time_seconds,
+          pBase * baselineRoute.estimated_travel_time_seconds
+        );
+        setBaseElapsedTimeSec(elapsedSecBase);
+        if (pBase >= 1.0) setBaseArrived(true);
+      }
+
+      if (pOpt >= 1.0 && pBase >= 1.0) {
+        setIsRaceAnimating(false);
+        return;
+      }
+
+      animFrameRef.current = requestAnimationFrame(step);
+    };
+
+    animFrameRef.current = requestAnimationFrame(step);
+  };
+
+  const handlePauseRace = () => {
+    if (animFrameRef.current !== null) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    animStateRef.current.pausedTime = performance.now();
+    animStateRef.current.isPaused = true;
+    setIsRacePaused(true);
+  };
+
+  const handleResumeRace = () => {
+    if (!isRaceAnimating) return;
+    const pauseDelta = performance.now() - animStateRef.current.pausedTime;
+    animStateRef.current.startTime += pauseDelta;
+    animStateRef.current.isPaused = false;
+    setIsRacePaused(false);
+
+    const step = (now: number) => {
+      if (animStateRef.current.isPaused) return;
+      const elapsed = (now - animStateRef.current.startTime) * animStateRef.current.speed;
+
+      let pOpt = Math.min(1.0, elapsed / animStateRef.current.optDuration);
+      if (optimisedRoute?.geometry?.length) {
+        setAnimProgressOpt(pOpt);
+        setAnimPosOpt(interpolateAlongGeometry(optimisedRoute.geometry, pOpt));
+        const elapsedSecOpt = Math.min(
+          optimisedRoute.estimated_travel_time_seconds,
+          (elapsed / animStateRef.current.optDuration) * optimisedRoute.estimated_travel_time_seconds
+        );
+        setOptElapsedTimeSec(elapsedSecOpt);
+        if (pOpt >= 1.0) setOptArrived(true);
+      }
+
+      let pBase = 0.0;
+      if (baselineRoute?.geometry?.length) {
+        if (animStateRef.current.hasBlock) {
+          const preBlockDuration = animStateRef.current.baseDuration * 0.45;
+          const pauseDuration = 4000;
+          if (elapsed < preBlockDuration) {
+            pBase = (elapsed / preBlockDuration) * 0.5;
+            setBaseBlockedPause(false);
+          } else if (elapsed < preBlockDuration + pauseDuration) {
+            pBase = 0.5;
+            setBaseBlockedPause(true);
+          } else {
+            setBaseBlockedPause(false);
+            const postElapsed = elapsed - (preBlockDuration + pauseDuration);
+            const postDuration = animStateRef.current.baseDuration * 0.55;
+            pBase = 0.5 + Math.min(0.5, (postElapsed / postDuration) * 0.5);
+          }
+        } else {
+          pBase = Math.min(1.0, elapsed / animStateRef.current.baseDuration);
+        }
+
+        setAnimProgressBase(pBase);
+        setAnimPosBase(interpolateAlongGeometry(baselineRoute.geometry, pBase));
+        const elapsedSecBase = Math.min(
+          baselineRoute.estimated_travel_time_seconds,
+          pBase * baselineRoute.estimated_travel_time_seconds
+        );
+        setBaseElapsedTimeSec(elapsedSecBase);
+        if (pBase >= 1.0) setBaseArrived(true);
+      }
+
+      if (pOpt >= 1.0 && pBase >= 1.0) {
+        setIsRaceAnimating(false);
+        return;
+      }
+      animFrameRef.current = requestAnimationFrame(step);
+    };
+
+    animFrameRef.current = requestAnimationFrame(step);
+  };
+
+  const handleSpeedChange = (speed: number) => {
+    setRaceSpeed(speed);
+    animStateRef.current.speed = speed;
+  };
+
+  // Mode Switch Helper
+  const handleModeChange = (mode: DashboardMode) => {
+    stopRaceAnimation();
+    setDashboardMode(mode);
+  };
+
   const handleClearPoints = () => {
+    stopRaceAnimation();
     setFromNode(null);
     setToNode(null);
     setOptimisedRoute(null);
@@ -194,6 +462,7 @@ export const App: React.FC = () => {
   };
 
   const handleSwapPoints = () => {
+    stopRaceAnimation();
     const prevFrom = fromNode;
     setFromNode(toNode);
     setToNode(prevFrom);
@@ -203,13 +472,13 @@ export const App: React.FC = () => {
     setReachabilityError(null);
   };
 
-  const handleOptimisePath = async (algorithm: 'astar' | 'dijkstra') => {
+  const handleOptimisePath = async () => {
     if (!fromNode || !toNode) return;
+    stopRaceAnimation();
     setIsPathComputing(true);
     setReachabilityError(null);
     try {
-      // Run comparison endpoint so both sides can be evaluated or update optimised
-      const comp = await api.comparePaths(fromNode.node_id, toNode.node_id, algorithm);
+      const comp = await api.comparePaths(fromNode.node_id, toNode.node_id, 'astar');
       setComparisonResult(comp);
       setOptimisedRoute(comp.optimised);
       if (!comp.is_reachable || !comp.optimised.is_reachable) {
@@ -224,10 +493,11 @@ export const App: React.FC = () => {
 
   const handleBaselinePath = async () => {
     if (!fromNode || !toNode) return;
+    stopRaceAnimation();
     setIsPathComputing(true);
     setReachabilityError(null);
     try {
-      const comp = await api.comparePaths(fromNode.node_id, toNode.node_id, findPathAlgorithm);
+      const comp = await api.comparePaths(fromNode.node_id, toNode.node_id, 'astar');
       setComparisonResult(comp);
       setBaselineRoute(comp.baseline);
       if (!comp.baseline.is_reachable) {
@@ -240,7 +510,30 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleCongestBaseline = async () => {
+    if (!fromNode || !toNode) return;
+    stopRaceAnimation();
+    setIsPathComputing(true);
+    try {
+      const res = await api.congestBaselineRoute(fromNode.node_id, toNode.node_id);
+      const graph = await api.getCityGraph();
+      setCityGraph(graph);
+      triggerToast(res.message || 'Congested the baseline route (Demo).', 'info');
+
+      // Re-evaluate paths
+      const comp = await api.comparePaths(fromNode.node_id, toNode.node_id, 'astar');
+      setComparisonResult(comp);
+      setOptimisedRoute(comp.optimised);
+      setBaselineRoute(comp.baseline);
+    } catch (err: any) {
+      triggerToast(`Failed to congest baseline: ${err?.message}`, 'error');
+    } finally {
+      setIsPathComputing(false);
+    }
+  };
+
   const handleRandomizeTraffic = async (seed?: number) => {
+    stopRaceAnimation();
     setIsPathComputing(true);
     try {
       await api.randomizeTraffic(seed);
@@ -250,7 +543,7 @@ export const App: React.FC = () => {
 
       // If points are already selected, re-evaluate to show updated impact live
       if (fromNode && toNode) {
-        const comp = await api.comparePaths(fromNode.node_id, toNode.node_id, findPathAlgorithm);
+        const comp = await api.comparePaths(fromNode.node_id, toNode.node_id, 'astar');
         setComparisonResult(comp);
         if (optimisedRoute) setOptimisedRoute(comp.optimised);
         if (baselineRoute) setBaselineRoute(comp.baseline);
@@ -328,7 +621,7 @@ export const App: React.FC = () => {
         activeCorridorsCount={corridorNodes.length > 0 ? 1 : 0}
         backendStatus={backendStatus}
         mode={dashboardMode}
-        onModeChange={(m) => setDashboardMode(m)}
+        onModeChange={handleModeChange}
       />
 
       {/* Main Command Center Grid */}
@@ -348,10 +641,9 @@ export const App: React.FC = () => {
                 onOptimisePath={handleOptimisePath}
                 onBaselinePath={handleBaselinePath}
                 onRandomizeTraffic={handleRandomizeTraffic}
+                onCongestBaseline={handleCongestBaseline}
                 isComputing={isPathComputing}
                 reachabilityError={reachabilityError}
-                algorithm={findPathAlgorithm}
-                onAlgorithmChange={setFindPathAlgorithm}
               />
             </div>
 
@@ -371,6 +663,11 @@ export const App: React.FC = () => {
                 onMapNodeClick={handleMapNodeClick}
                 findPathOptimised={optimisedRoute}
                 findPathBaseline={baselineRoute}
+                animProgressOpt={animProgressOpt}
+                animProgressBase={animProgressBase}
+                animPosOpt={animPosOpt}
+                animPosBase={animPosBase}
+                baseBlockedPause={baseBlockedPause}
               />
             </div>
 
@@ -381,6 +678,18 @@ export const App: React.FC = () => {
                 baselineRoute={baselineRoute}
                 comparison={comparisonResult}
                 isComputing={isPathComputing}
+                isRaceAnimating={isRaceAnimating}
+                isRacePaused={isRacePaused}
+                onStartRace={handleStartRace}
+                onPauseRace={handlePauseRace}
+                onResumeRace={handleResumeRace}
+                onResetRace={handleResetRace}
+                raceSpeed={raceSpeed}
+                onRaceSpeedChange={handleSpeedChange}
+                optArrived={optArrived}
+                baseArrived={baseArrived}
+                optElapsedTimeSec={optElapsedTimeSec}
+                baseElapsedTimeSec={baseElapsedTimeSec}
               />
             </div>
           </>

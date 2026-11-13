@@ -218,4 +218,17 @@ export const api = {
       }
     );
   },
+
+  congestBaselineRoute: async (fromNode: string, toNode: string): Promise<any> => {
+    return safeFetch(
+      '/routing/congest-baseline',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          from_node: fromNode,
+          to_node: toNode,
+        }),
+      }
+    );
+  },
 };

@@ -3,7 +3,7 @@ import sys
 import json
 import math
 import heapq
-from typing import Dict, List, Tuple, Optional, Set
+from typing import Dict, List, Tuple, Optional, Set, Any
 from app.schemas.city import IntersectionNode, RoadSegment, CityGraph, SignalState
 from app.schemas.traffic import CongestionLevel
 from app.schemas.route import RoutePath
@@ -374,10 +374,10 @@ class CityGraphService:
 
         return None
 
-    def randomize_traffic_conditions(self, seed: Optional[int] = None, num_blocked: Optional[int] = None) -> Tuple[int, List[str], int]:
+    def randomize_traffic_conditions(self, seed: Optional[int] = None, num_blocked: Optional[int] = None) -> Tuple[int, List[str], int, List[Dict[str, Any]]]:
         """
         Randomize congestion levels and block 2-4 roads for realistic comparison.
-        Returns: (seed_used, blocked_road_ids, congested_count)
+        Returns: (seed_used, blocked_road_ids, congested_count, congested_roads_details)
         """
         import random
         if seed is None:
@@ -402,12 +402,18 @@ class CityGraphService:
             ("severe", 3.0),
         ]
         congested_count = 0
+        congested_details = []
         for edge in edge_list:
             level, mult = rng.choices(levels, weights=[0.45, 0.25, 0.18, 0.12])[0]
             edge.current_congestion_level = level
             edge.congestion_weight_multiplier = mult
             if level != "free_flow":
                 congested_count += 1
+                congested_details.append({
+                    "road_id": edge.road_id,
+                    "level": level,
+                    "multiplier": mult,
+                })
 
         # Pick roads to block (ensure we pick actual road IDs)
         candidate_edges = [e for e in edge_list if e.source_node != e.target_node]
@@ -417,7 +423,42 @@ class CityGraphService:
             e.is_blocked = True
             blocked_ids.append(e.road_id)
 
-        return (seed, blocked_ids, congested_count)
+        return (seed, blocked_ids, congested_count, congested_details)
+
+    def congest_path(self, from_node: str, to_node: str) -> Tuple[List[str], Optional[str]]:
+        """
+        Demo scenario helper: "Congest the baseline route"
+        Applies heavy congestion (2.5x - 3.5x) and blocks one road strictly along
+        the distance-shortest baseline path between from_node and to_node.
+        Returns: (congested_road_ids, blocked_road_id)
+        """
+        res = self.find_shortest_distance_path(from_node, to_node)
+        if not res or not res[1]:
+            return ([], None)
+
+        _, path_roads, _, _ = res
+        congested_roads = []
+        blocked_road = None
+
+        # Choose one road in the middle of the path to block if path has >= 2 roads, else the only road
+        block_idx = max(0, len(path_roads) // 2) if len(path_roads) > 1 else 0
+
+        for idx, road_id in enumerate(path_roads):
+            edge = self.get_edge(road_id)
+            if not edge:
+                continue
+            if idx == block_idx:
+                edge.is_blocked = True
+                edge.current_congestion_level = "severe"
+                edge.congestion_weight_multiplier = 3.5
+                blocked_road = edge.road_id
+            else:
+                edge.is_blocked = False
+                edge.current_congestion_level = "heavy"
+                edge.congestion_weight_multiplier = 2.5
+            congested_roads.append(edge.road_id)
+
+        return (congested_roads, blocked_road)
 
     def find_shortest_path(
         self,

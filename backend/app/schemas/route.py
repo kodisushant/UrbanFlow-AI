@@ -66,6 +66,31 @@ class RouteResult(BaseModel):
     diverted_roads: List[str] = Field(default_factory=list)
     explanation: str = Field(default="Optimal emergency route selected.")
 
+    @model_validator(mode="after")
+    def populate_flattened_fields(self):
+        if self.primary_route:
+            if not self.node_ids and self.primary_route.node_sequence:
+                self.node_ids = self.primary_route.node_sequence
+            if not self.road_ids and self.primary_route.road_ids:
+                self.road_ids = self.primary_route.road_ids
+            if not self.total_distance_meters and self.primary_route.distance_meters:
+                self.total_distance_meters = self.primary_route.distance_meters
+            if not self.estimated_travel_time_seconds and self.primary_route.estimated_travel_time_seconds:
+                self.estimated_travel_time_seconds = self.primary_route.estimated_travel_time_seconds
+            if not self.coordinates and getattr(self.primary_route, "coordinates", None):
+                self.coordinates = self.primary_route.coordinates
+        if not self.eta_seconds and self.estimated_travel_time_seconds:
+            self.eta_seconds = self.estimated_travel_time_seconds
+        if not self.estimated_travel_time_minutes and self.estimated_travel_time_seconds:
+            self.estimated_travel_time_minutes = round(self.estimated_travel_time_seconds / 60.0, 1)
+        if not self.origin_node and self.node_ids:
+            self.origin_node = self.node_ids[0]
+        if not self.destination_node and self.node_ids:
+            self.destination_node = self.node_ids[-1]
+        return self
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class SegmentCongestionInfo(BaseModel):
     road_id: str
@@ -144,28 +169,20 @@ class RandomizeTrafficResult(BaseModel):
     seed_used: int
     blocked_roads: List[str]
     congested_roads_count: int
+    congested_roads: List[Dict[str, Any]] = Field(default_factory=list)
 
-    @model_validator(mode="after")
-    def populate_flattened_fields(self):
-        if self.primary_route:
-            if not self.node_ids and self.primary_route.node_sequence:
-                self.node_ids = self.primary_route.node_sequence
-            if not self.road_ids and self.primary_route.road_ids:
-                self.road_ids = self.primary_route.road_ids
-            if not self.total_distance_meters and self.primary_route.distance_meters:
-                self.total_distance_meters = self.primary_route.distance_meters
-            if not self.estimated_travel_time_seconds and self.primary_route.estimated_travel_time_seconds:
-                self.estimated_travel_time_seconds = self.primary_route.estimated_travel_time_seconds
-            if not self.coordinates and getattr(self.primary_route, "coordinates", None):
-                self.coordinates = self.primary_route.coordinates
-        if not self.eta_seconds and self.estimated_travel_time_seconds:
-            self.eta_seconds = self.estimated_travel_time_seconds
-        if not self.estimated_travel_time_minutes and self.estimated_travel_time_seconds:
-            self.estimated_travel_time_minutes = round(self.estimated_travel_time_seconds / 60.0, 1)
-        if not self.origin_node and self.node_ids:
-            self.origin_node = self.node_ids[0]
-        if not self.destination_node and self.node_ids:
-            self.destination_node = self.node_ids[-1]
-        return self
+
+class CongestBaselineRequest(BaseModel):
+    from_node: str = Field(..., description="Origin node ID")
+    to_node: str = Field(..., description="Destination node ID")
+
+
+class CongestBaselineResult(BaseModel):
+    status: str
+    from_node: str
+    to_node: str
+    congested_roads: List[str]
+    blocked_road: Optional[str] = None
+    message: str
 
     model_config = ConfigDict(from_attributes=True)

@@ -19,13 +19,12 @@ interface FindPathControlsProps {
   onSetSelectionStep: (step: 'from' | 'to') => void;
   onClearPoints: () => void;
   onSwapPoints: () => void;
-  onOptimisePath: (algorithm: 'astar' | 'dijkstra') => void;
+  onOptimisePath: () => void;
   onBaselinePath: () => void;
   onRandomizeTraffic: (seed?: number) => void;
+  onCongestBaseline: () => void;
   isComputing: boolean;
   reachabilityError: string | null;
-  algorithm: 'astar' | 'dijkstra';
-  onAlgorithmChange: (algo: 'astar' | 'dijkstra') => void;
 }
 
 export const FindPathControls: React.FC<FindPathControlsProps> = ({
@@ -38,10 +37,9 @@ export const FindPathControls: React.FC<FindPathControlsProps> = ({
   onOptimisePath,
   onBaselinePath,
   onRandomizeTraffic,
+  onCongestBaseline,
   isComputing,
   reachabilityError,
-  algorithm,
-  onAlgorithmChange,
 }) => {
   const [customSeed, setCustomSeed] = useState<string>('');
 
@@ -56,7 +54,7 @@ export const FindPathControls: React.FC<FindPathControlsProps> = ({
           <span>Route Optimisation</span>
         </div>
         <p className="text-xs text-slate-400 mt-1">
-          Select origin and destination nodes by clicking on the map or buttons below, then compare algorithmic routing against static baseline navigation.
+          Select origin and destination nodes by clicking on the map, then compare A* algorithmic routing against static baseline navigation.
         </p>
       </div>
 
@@ -163,44 +161,16 @@ export const FindPathControls: React.FC<FindPathControlsProps> = ({
         </div>
       )}
 
-      {/* Algorithm Choice Toggle for Optimised */}
-      <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-3 space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-            Optimiser Algorithm
-          </span>
-          <span className="text-[10px] text-cyan-400 font-mono">
-            {algorithm === 'astar' ? 'Admissible A*' : 'Dijkstra'}
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => onAlgorithmChange('astar')}
-            className={`py-1.5 px-3 rounded text-xs font-semibold tracking-wide transition ${
-              algorithm === 'astar'
-                ? 'bg-cyan-600 text-white shadow-md shadow-cyan-900/40 border border-cyan-400/50'
-                : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
-            }`}
-          >
-            A* (Heuristic)
-          </button>
-          <button
-            onClick={() => onAlgorithmChange('dijkstra')}
-            className={`py-1.5 px-3 rounded text-xs font-semibold tracking-wide transition ${
-              algorithm === 'dijkstra'
-                ? 'bg-cyan-600 text-white shadow-md shadow-cyan-900/40 border border-cyan-400/50'
-                : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
-            }`}
-          >
-            Dijkstra
-          </button>
-        </div>
+      {/* Algorithm Label */}
+      <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-2.5 flex items-center justify-between text-xs">
+        <span className="font-semibold text-slate-400">Pathfinding Engine:</span>
+        <span className="font-mono text-cyan-400 font-bold">A* (admissible heuristic)</span>
       </div>
 
       {/* Action Buttons: Optimise vs Baseline */}
       <div className="space-y-2 pt-1">
         <button
-          onClick={() => onOptimisePath(algorithm)}
+          onClick={onOptimisePath}
           disabled={!canCompute}
           className={`w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-lg font-bold text-xs tracking-wider uppercase transition shadow-lg ${
             canCompute
@@ -209,7 +179,7 @@ export const FindPathControls: React.FC<FindPathControlsProps> = ({
           }`}
         >
           <Sparkles className="w-4 h-4" />
-          <span>{isComputing ? 'Computing...' : 'Optimise Path'}</span>
+          <span>{isComputing ? 'Computing...' : 'Optimise Path (A*)'}</span>
         </button>
 
         <button
@@ -224,6 +194,21 @@ export const FindPathControls: React.FC<FindPathControlsProps> = ({
         >
           <Compass className="w-3.5 h-3.5" />
           <span>Without Optimisation</span>
+        </button>
+
+        {/* Demo Scenario Button: Congest the baseline route */}
+        <button
+          onClick={onCongestBaseline}
+          disabled={!canCompute}
+          className={`w-full flex items-center justify-center space-x-1.5 py-1.5 px-3 rounded text-[11px] font-semibold transition border ${
+            canCompute
+              ? 'bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 border-amber-600/40'
+              : 'bg-slate-900/40 text-slate-600 border-slate-800 cursor-not-allowed'
+          }`}
+          title="Demo scenario: applies heavy congestion and closes one road strictly on the baseline route"
+        >
+          <AlertCircle className="w-3 h-3 text-amber-400" />
+          <span>Congest the baseline route (Demo)</span>
         </button>
       </div>
 
@@ -247,7 +232,7 @@ export const FindPathControls: React.FC<FindPathControlsProps> = ({
           />
           <button
             onClick={() => {
-              const seedNum = customSeed ? parseInt(customSeed, 10) : undefined;
+              const seedNum = customSeed.trim() ? parseInt(customSeed, 10) : undefined;
               onRandomizeTraffic(seedNum);
             }}
             disabled={isComputing}

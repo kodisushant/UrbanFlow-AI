@@ -16,6 +16,25 @@ DISPATCH_RULES = {
     }
 }
 
+# Data-driven on-scene phase configurations for each unit type
+UNIT_ON_SCENE_PHASES = {
+    "fire_engine": [
+        {"name": "arrived", "duration": 1.5, "action": "Arrived at Scene", "log": "Arrived at scene. Preparing equipment."},
+        {"name": "fire_suppression", "duration": 4.0, "action": "Fire Suppression Underway", "log": "Fire suppression underway: deploying high-pressure hose lines."},
+        {"name": "fire_extinguished", "duration": 3.0, "action": "Fire Extinguished", "log": "Fire extinguished. Primary containment complete."},
+        {"name": "smoke_cleared", "duration": 2.5, "action": "Smoke Cleared / Site Cooled", "log": "Smoke cleared / site cooled. Thermal imaging confirms zero hot spots."},
+    ],
+    "police_patrol": [
+        {"name": "arrived", "duration": 1.5, "action": "Arrived at Scene", "log": "Arrived at scene. Assessing perimeter."},
+        {"name": "cordon_established", "duration": 3.5, "action": "Area Secured, Cordon Established", "log": "Area secured, cordon established. Traffic safety zone in effect."},
+        {"name": "traffic_diverted", "duration": 3.5, "action": "Traffic Diverted Around Incident", "log": "Traffic diverted around incident corridor. Perimeter locked."},
+        {"name": "report_filed", "duration": 2.5, "action": "Incident Report Filed", "log": "Incident report filed and evidence logged. Cleared to demobilize."},
+    ],
+    "ambulance": [
+        {"name": "arrived", "duration": 1.0, "action": "Arrived at Scene", "log": "Arrived at incident scene. Paramedic triage initiated."},
+    ]
+}
+
 
 class ResourceService:
     """
@@ -328,14 +347,19 @@ class ResourceService:
                     unit.status = ResourceStatus.ON_SCENE.value
                     unit.eta_seconds = 0
                     unit.phase_start_time = now
-                    unit.phase_duration_seconds = 1.0 if unit.unit_type == "ambulance" else 8.0
+                    unit.subphase_index = 0
+
+                    phases = UNIT_ON_SCENE_PHASES.get(unit.unit_type, UNIT_ON_SCENE_PHASES.get("police_patrol", []))
+                    current_phase = phases[0] if phases else {"name": "on_scene", "duration": 4.0, "action": "Arrived On Scene", "log": "Arrived on scene."}
+                    unit.phase_duration_seconds = current_phase.get("duration", 2.0)
+                    unit.subphase_name = current_phase.get("name", "arrived")
 
                     workflow_coordinator.log_agent_action(
                         agent_name="EmergencyAgent",
                         role="On-Scene Triage",
-                        action=f"{unit.call_sign} Arrived On Scene",
-                        summary=f"{unit.call_sign} arrived at incident {unit.current_node}. Establishing scene response.",
-                        details={"unit_id": unit.unit_id, "status": "on_scene"}
+                        action=f"{unit.call_sign} {current_phase.get('action', 'Arrived On Scene')}",
+                        summary=f"{unit.call_sign} arrived at incident {unit.current_node}. {current_phase.get('log')}",
+                        details={"unit_id": unit.unit_id, "status": "on_scene", "subphase": unit.subphase_name}
                     )
                     if active_inc and active_inc.status != "on_scene":
                         incident_service.update_status(active_inc.incident_id, "on_scene")
@@ -354,20 +378,28 @@ class ResourceService:
                         accum += slen
 
             # -------------------------------------------------------------
-            # 2. ON_SCENE (At incident location)
+            # 2. ON_SCENE (At incident location with multi-stage subphases)
             # -------------------------------------------------------------
             elif unit.status == ResourceStatus.ON_SCENE.value:
+                phases = UNIT_ON_SCENE_PHASES.get(unit.unit_type, UNIT_ON_SCENE_PHASES.get("police_patrol", []))
+                idx = unit.subphase_index or 0
+
                 if unit.phase_start_time is None:
                     unit.phase_start_time = now
-                    unit.phase_duration_seconds = 1.0 if unit.unit_type == "ambulance" else 8.0
+                    current_p = phases[idx] if idx < len(phases) else phases[-1]
+                    unit.phase_duration_seconds = current_p.get("duration", 2.0)
+                    unit.subphase_name = current_p.get("name")
 
                 elapsed_phase = (now - unit.phase_start_time) * phase_speed
-                if elapsed_phase >= (unit.phase_duration_seconds or 1.0):
+                curr_duration = unit.phase_duration_seconds or 2.0
+
+                if elapsed_phase >= curr_duration:
                     if unit.unit_type == "ambulance":
                         # Transition to LOADING
                         unit.status = ResourceStatus.LOADING.value
                         unit.phase_start_time = now
                         unit.phase_duration_seconds = 5.0
+                        unit.subphase_name = "loading"
                         pts = active_inc.patient_count if active_inc else 1
                         workflow_coordinator.log_agent_action(
                             agent_name="EmergencyAgent",
@@ -377,30 +409,48 @@ class ResourceService:
                             details={"unit_id": unit.unit_id, "patient_count": pts}
                         )
                     else:
-                        # Fire / Police on-scene mitigation complete -> Transition to RETURNING
-                        ret_path = city_graph_service.find_shortest_path(
-                            origin_node=unit.current_node,
-                            destination_node=unit.station_node,
-                            algorithm="astar",
-                            allow_destination_access=True
-                        )
-                        coords = [[c["latitude"], c["longitude"]] for c in ret_path.coordinates] if ret_path and ret_path.coordinates else []
-                        unit.status = ResourceStatus.RETURNING.value
-                        unit.target_node = unit.station_node
-                        unit.route_geometry = coords
-                        unit.dispatch_timestamp = now
-                        unit.total_route_distance_meters = ret_path.distance_meters if ret_path else 0.0
-                        unit.total_route_duration_seconds = ret_path.estimated_travel_time_seconds if ret_path else 0.0
-                        unit.eta_seconds = ret_path.estimated_travel_time_seconds if ret_path else 0
-                        unit.phase_start_time = None
+                        # Advance to next subphase for Fire or Police
+                        next_idx = idx + 1
+                        if next_idx < len(phases):
+                            unit.subphase_index = next_idx
+                            next_phase = phases[next_idx]
+                            unit.phase_start_time = now
+                            unit.phase_duration_seconds = next_phase.get("duration", 3.0)
+                            unit.subphase_name = next_phase.get("name")
 
-                        workflow_coordinator.log_agent_action(
-                            agent_name="EmergencyAgent",
-                            role="Return Dispatch",
-                            action=f"{unit.call_sign} Returning to Station",
-                            summary=f"{unit.call_sign} secured scene and returning to station {unit.station_node}.",
-                            details={"unit_id": unit.unit_id, "station": unit.station_node}
-                        )
+                            workflow_coordinator.log_agent_action(
+                                agent_name="EmergencyAgent",
+                                role=f"{unit.unit_type.replace('_', ' ').title()} Mitigation",
+                                action=f"{unit.call_sign}: {next_phase.get('action')}",
+                                summary=f"{unit.call_sign}: {next_phase.get('log')}",
+                                details={"unit_id": unit.unit_id, "subphase": unit.subphase_name}
+                            )
+                        else:
+                            # All on-scene phases completed -> Transition to RETURNING
+                            ret_path = city_graph_service.find_shortest_path(
+                                origin_node=unit.current_node,
+                                destination_node=unit.station_node,
+                                algorithm="astar",
+                                allow_destination_access=True
+                            )
+                            coords = [[c["latitude"], c["longitude"]] for c in ret_path.coordinates] if ret_path and ret_path.coordinates else []
+                            unit.status = ResourceStatus.RETURNING.value
+                            unit.target_node = unit.station_node
+                            unit.route_geometry = coords
+                            unit.dispatch_timestamp = now
+                            unit.total_route_distance_meters = ret_path.distance_meters if ret_path else 0.0
+                            unit.total_route_duration_seconds = ret_path.estimated_travel_time_seconds if ret_path else 0.0
+                            unit.eta_seconds = ret_path.estimated_travel_time_seconds if ret_path else 0
+                            unit.phase_start_time = None
+                            unit.subphase_name = "returning"
+
+                            workflow_coordinator.log_agent_action(
+                                agent_name="EmergencyAgent",
+                                role="Return Dispatch",
+                                action=f"{unit.call_sign} Returning to Station",
+                                summary=f"{unit.call_sign} completed incident operations and returning to station {unit.station_node}.",
+                                details={"unit_id": unit.unit_id, "station": unit.station_node}
+                            )
 
             # -------------------------------------------------------------
             # 3. LOADING (Ambulance loading patients, ~5 simulated seconds)
