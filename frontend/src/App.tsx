@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { CityMap } from './components/CityMap';
 import { CCTVPanel } from './components/CCTVPanel';
 import { IncidentPanel } from './components/IncidentPanel';
 import { ResourceList } from './components/ResourceList';
 import { AgentLogFeed } from './components/AgentLogFeed';
-import { api } from './services/api';
+import { api, ApiError } from './services/api';
 import {
   CityGraph,
   EmergencyUnit,
@@ -17,34 +17,67 @@ import {
   mockCityGraph,
   mockEmergencyUnits,
   mockOrchestrationState,
+  standbyOrchestrationState,
 } from './services/mockData';
+import { AlertCircle, CheckCircle2, X } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [cityGraph, setCityGraph] = useState<CityGraph>(mockCityGraph);
-  const [orchestration, setOrchestration] = useState<OrchestrationState>(mockOrchestrationState);
+  const [orchestration, setOrchestration] = useState<OrchestrationState>(standbyOrchestrationState);
   const [emergencyUnits, setEmergencyUnits] = useState<EmergencyUnit[]>(mockEmergencyUnits);
-  const [simulationTime, setSimulationTime] = useState<number>(14.2);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [simulationTime, setSimulationTime] = useState<number>(0.0);
+  const [isRunning, setIsRunning] = useState<boolean>(true);
+  const [isBackendOnline, setIsBackendOnline] = useState<boolean>(false);
+
+  // Operation loading states
+  const [isOperating, setIsOperating] = useState<boolean>(false);
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
+  const [isRejecting, setIsRejecting] = useState<boolean>(false);
   const [isDispatching, setIsDispatching] = useState<boolean>(false);
+  const [isResolving, setIsResolving] = useState<boolean>(false);
+
+  // Toast notifications for user feedback
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error' | 'info';
+    message: string;
+  } | null>(null);
+
+  const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setNotification({ message, type });
+  };
+
+  // Fetch full state from backend
+  const refreshAll = useCallback(async () => {
+    try {
+      const health = await api.checkHealth();
+      setIsBackendOnline(health.online);
+
+      const [graph, state, units] = await Promise.all([
+        api.getCityGraph(),
+        api.getOrchestrationState(),
+        api.getEmergencyUnits(),
+      ]);
+
+      setCityGraph(graph);
+      setOrchestration(state);
+      setEmergencyUnits(units);
+    } catch (err: any) {
+      console.warn('Backend refresh error:', err);
+      setIsBackendOnline(false);
+    }
+  }, []);
 
   // Initial load
   useEffect(() => {
-    async function loadInitialData() {
-      try {
-        const [graph, state, units] = await Promise.all([
-          api.getCityGraph(),
-          api.getOrchestrationState(),
-          api.getEmergencyUnits(),
-        ]);
-        setCityGraph(graph);
-        setOrchestration(state);
-        setEmergencyUnits(units);
-      } catch (err) {
-        console.warn('Using seeded tactical mock data:', err);
-      }
-    }
-    loadInitialData();
+    refreshAll();
+  }, [refreshAll]);
+
+  // Periodic health check every 10s
+  useEffect(() => {
+    const timer = setInterval(() => {
+      api.checkHealth().then((h) => setIsBackendOnline(h.online));
+    }, 10000);
+    return () => clearInterval(timer);
   }, []);
 
   // Simulation timer tick
@@ -58,73 +91,156 @@ export const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  // One-click Hackathon Scenario Trigger
-  const handleRunScenario = async () => {
-    setIsRunning(true);
+  // 1. One-click Hackathon Scenario Trigger (Full 8-Step Auto Demo)
+  const handleRunFullScenario = async () => {
+    setIsOperating(true);
     try {
-      const state = await api.runScenario('Cyber City Emergency Response');
+      showNotification('Running full automated 8-step emergency response scenario...', 'info');
+      const state = await api.runScenario('Cyber City Emergency Response', true);
       setOrchestration(state);
       const units = await api.getEmergencyUnits();
       setEmergencyUnits(units);
-    } catch (err) {
-      console.error('Failed to trigger scenario:', err);
+      const graph = await api.getCityGraph();
+      setCityGraph(graph);
+      showNotification('Full scenario executed: Units dispatched and Green Corridor active!', 'success');
+    } catch (err: any) {
+      showNotification(`Scenario trigger error: ${err.message}`, 'error');
     } finally {
-      setIsRunning(false);
+      setIsOperating(false);
     }
   };
 
-  // Instant Reset Action
+  // 2. Step-by-Step Scenario (Detection -> Operator Review -> Dispatch)
+  const handleRunStepScenario = async () => {
+    setIsOperating(true);
+    try {
+      showNotification('Simulating candidate detection at INT-03. Awaiting operator review.', 'info');
+      const state = await api.runScenario('Cyber City Emergency Response', false);
+      setOrchestration(state);
+      await refreshAll();
+      showNotification('Candidate incident detected! Review CCTV and verify or reject.', 'info');
+    } catch (err: any) {
+      showNotification(`Step scenario error: ${err.message}`, 'error');
+    } finally {
+      setIsOperating(false);
+    }
+  };
+
+  // 3. Instant Reset Action
   const handleReset = async () => {
-    setIsRunning(false);
+    setIsOperating(true);
     setSimulationTime(0.0);
     try {
       await api.resetSimulation();
-      const [graph, state, units] = await Promise.all([
-        api.getCityGraph(),
-        api.getOrchestrationState(),
-        api.getEmergencyUnits(),
-      ]);
-      setCityGraph(graph);
-      setOrchestration(state);
-      setEmergencyUnits(units);
-    } catch (err) {
-      console.error('Failed to reset simulation:', err);
+      await refreshAll();
+      showNotification('System reset to baseline standby. All corridors and units restored.', 'success');
+    } catch (err: any) {
+      showNotification(`Reset failed: ${err.message}`, 'error');
+    } finally {
+      setIsOperating(false);
     }
   };
 
-  // Operator Verification Action
+  // 4. Operator Verification Action
   const handleVerify = async () => {
     if (!orchestration.active_incident) return;
     setIsVerifying(true);
     try {
-      const updated = await api.verifyIncident(orchestration.active_incident.incident_id);
-      setOrchestration((prev) => ({
-        ...prev,
-        active_incident: updated,
-      }));
-    } catch (err) {
-      console.error('Verification failed:', err);
+      const updated = await api.verifyIncident(
+        orchestration.active_incident.incident_id,
+        true,
+        'Confirmed collision via CCTV. Emergency response authorized.'
+      );
+      showNotification(`Incident ${updated.incident_id} verified. Emergency units allocated!`, 'success');
+      await refreshAll();
+    } catch (err: any) {
+      showNotification(`Verification failed: ${err.message}`, 'error');
     } finally {
       setIsVerifying(false);
     }
   };
 
-  // Dispatch Action
+  // 5. Operator Rejection Action (False Alarm / Safety Rule)
+  const handleReject = async () => {
+    if (!orchestration.active_incident) return;
+    setIsRejecting(true);
+    try {
+      const updated = await api.verifyIncident(
+        orchestration.active_incident.incident_id,
+        false,
+        'Rejected by Operator as false alarm / normal stationary traffic.'
+      );
+      showNotification(`Incident ${updated.incident_id} rejected as false alarm. Dispatch aborted.`, 'info');
+      await refreshAll();
+    } catch (err: any) {
+      showNotification(`Rejection failed: ${err.message}`, 'error');
+    } finally {
+      setIsRejecting(false);
+    }
+  };
+
+  // 6. Dispatch Emergency Units Action
   const handleDispatch = async () => {
     if (!orchestration.active_incident) return;
     setIsDispatching(true);
     try {
       const updated = await api.dispatchIncident(orchestration.active_incident.incident_id);
-      const [state, units] = await Promise.all([
-        api.getOrchestrationState(),
-        api.getEmergencyUnits(),
-      ]);
-      setOrchestration(state);
-      setEmergencyUnits(units);
-    } catch (err) {
-      console.error('Dispatch failed:', err);
+      showNotification(
+        `Emergency units dispatched for ${updated.incident_id}. A* route & green corridors active!`,
+        'success'
+      );
+      await refreshAll();
+    } catch (err: any) {
+      showNotification(`Dispatch blocked: ${err.message}`, 'error');
     } finally {
       setIsDispatching(false);
+    }
+  };
+
+  // 7. Resolve Incident Action
+  const handleResolve = async () => {
+    if (!orchestration.active_incident) return;
+    setIsResolving(true);
+    try {
+      await api.resolveIncident(
+        orchestration.active_incident.incident_id,
+        'Scene cleared and units returned to stations.'
+      );
+      showNotification('Incident resolved: road closures cleared and units returned.', 'success');
+      await refreshAll();
+    } catch (err: any) {
+      showNotification(`Resolution failed: ${err.message}`, 'error');
+    } finally {
+      setIsResolving(false);
+    }
+  };
+
+  // 8. Simulate Incident Detection
+  const handleSimulateDetection = async (
+    locationNode: string = 'INT-03',
+    candidateType: string = 'possible_collision'
+  ) => {
+    setIsOperating(true);
+    try {
+      const roadId = locationNode === 'INT-03' ? 'ROAD-03A' : 'ROAD-01A';
+      const inc = await api.detectCandidate(locationNode, roadId, candidateType, 0.85);
+      showNotification(`Candidate ${candidateType} detected at ${locationNode}.`, 'info');
+      await refreshAll();
+    } catch (err: any) {
+      showNotification(`Detection trigger error: ${err.message}`, 'error');
+    } finally {
+      setIsOperating(false);
+    }
+  };
+
+  // 9. Interactive Road Closure Toggle
+  const handleToggleRoadClosure = async (roadId: string, currentBlocked: boolean) => {
+    try {
+      await api.toggleRoadClosure(roadId, !currentBlocked);
+      showNotification(`Road ${roadId} ${!currentBlocked ? 'closed' : 'reopened'}.`, 'info');
+      await refreshAll();
+    } catch (err: any) {
+      showNotification(`Failed to toggle closure: ${err.message}`, 'error');
     }
   };
 
@@ -149,12 +265,47 @@ export const App: React.FC = () => {
       <Header
         simulationTime={simulationTime}
         isRunning={isRunning}
-        onRunScenario={handleRunScenario}
+        onToggleTimer={() => setIsRunning(!isRunning)}
+        onRunFullScenario={handleRunFullScenario}
+        onRunStepScenario={handleRunStepScenario}
         onReset={handleReset}
-        activeIncidentsCount={orchestration.active_incident ? 1 : 0}
+        onRefresh={refreshAll}
+        activeIncidentsCount={
+          orchestration.active_incident && orchestration.active_incident.status !== 'resolved'
+            ? 1
+            : 0
+        }
         dispatchedUnitsCount={dispatchedCount}
         activeCorridorsCount={corridorNodes.length > 0 ? 1 : 0}
+        isBackendOnline={isBackendOnline}
+        isOperating={isOperating}
       />
+
+      {/* Floating Notification Toast */}
+      {notification && (
+        <div
+          className={`absolute top-18 right-6 z-[2000] flex items-center space-x-2 px-4 py-2.5 rounded-lg shadow-2xl border text-xs backdrop-blur-md transition-all ${
+            notification.type === 'error'
+              ? 'bg-rose-950/90 text-rose-200 border-rose-700'
+              : notification.type === 'success'
+              ? 'bg-emerald-950/90 text-emerald-200 border-emerald-700'
+              : 'bg-cyan-950/90 text-cyan-200 border-cyan-700'
+          }`}
+        >
+          {notification.type === 'error' ? (
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          )}
+          <span className="font-semibold">{notification.message}</span>
+          <button
+            onClick={() => setNotification(null)}
+            className="ml-2 hover:opacity-75 p-0.5"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Main Command Center Grid */}
       <main className="flex-1 grid grid-cols-12 gap-3 p-3 overflow-hidden">
@@ -162,19 +313,28 @@ export const App: React.FC = () => {
         <div className="col-span-3 flex flex-col space-y-3 overflow-y-auto pr-0.5">
           <CCTVPanel
             cameraId={orchestration.active_incident?.source || 'cctv_camera_01'}
-            hasCandidateAlert={!!orchestration.active_incident}
+            hasCandidateAlert={
+              !!orchestration.active_incident &&
+              orchestration.active_incident.status !== 'resolved'
+            }
+            onAnalyzeFeed={(camId) => handleSimulateDetection(camId === 'cctv_camera_01' ? 'INT-03' : 'INT-01')}
           />
           <IncidentPanel
             incident={orchestration.active_incident}
             onVerify={handleVerify}
+            onReject={handleReject}
             onDispatch={handleDispatch}
+            onResolve={handleResolve}
+            onSimulateDetection={handleSimulateDetection}
             isVerifying={isVerifying}
+            isRejecting={isRejecting}
             isDispatching={isDispatching}
+            isResolving={isResolving}
           />
         </div>
 
         {/* Center: Leaflet Interactive Command Center Map (6 Cols) */}
-        <div className="col-span-6 rounded-lg overflow-hidden border border-slate-800 shadow-2xl relative">
+        <div className="col-span-6 rounded-lg overflow-hidden border border-slate-800 shadow-2xl relative min-h-[480px]">
           <CityMap
             cityGraph={cityGraph}
             activeIncident={orchestration.active_incident}
@@ -182,6 +342,8 @@ export const App: React.FC = () => {
             emergencyRoute={primaryEmergencyRoute}
             diversionRoute={diversionRoute}
             activeCorridorNodes={corridorNodes}
+            onToggleRoadClosure={handleToggleRoadClosure}
+            onSimulateAtNode={(nodeId) => handleSimulateDetection(nodeId)}
           />
         </div>
 

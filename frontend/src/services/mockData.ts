@@ -39,14 +39,43 @@ export const mockCityGraph: CityGraph = {
   ]
 };
 
+export const standbyOrchestrationState: OrchestrationState = {
+  workflow_id: "WF-SCENARIO-STANDBY",
+  stage: "idle",
+  status: "idle",
+  current_step: 0,
+  total_steps: 5,
+  active_incident: null,
+  active_routes: [],
+  traffic_diversions: {
+    diverted_road_ids: [],
+    diversion_route: null,
+  },
+  signal_priority_corridor: {
+    corridor_nodes: [],
+    active: false,
+  },
+  agent_logs: [
+    {
+      agent_name: "CoordinatorAgent",
+      role: "System Orchestrator",
+      action: "System Initialized",
+      reasoning: "UrbanFlow AI Command Center in active standby monitoring Cyber City network.",
+      timestamp: "T+00:00s",
+      simulated: true,
+    },
+  ],
+  simulated: true,
+};
+
 export const mockEmergencyUnits: EmergencyUnit[] = [
   {
     unit_id: "AMB-01",
     call_sign: "Medic One ALS",
     unit_type: "ambulance",
     station_node: "INT-04",
-    current_node: "INT-20",
-    status: "dispatched",
+    current_node: "INT-04",
+    status: "stationed",
     latitude: 17.454,
     longitude: 78.375,
     speed_kmph: 58.0,
@@ -59,8 +88,8 @@ export const mockEmergencyUnits: EmergencyUnit[] = [
     call_sign: "Patrol Delta-9",
     unit_type: "police_patrol",
     station_node: "INT-18",
-    current_node: "INT-19",
-    status: "dispatched",
+    current_node: "INT-18",
+    status: "stationed",
     latitude: 17.445,
     longitude: 78.384,
     speed_kmph: 45.0,

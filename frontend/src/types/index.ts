@@ -39,11 +39,11 @@ export interface CityGraph {
   edges: RoadSegment[];
 }
 
-export type IncidentStatus = 
-  | 'candidate' 
-  | 'verified' 
-  | 'response_recommended' 
-  | 'simulated_dispatch' 
+export type IncidentStatus =
+  | 'candidate'
+  | 'verified'
+  | 'response_recommended'
+  | 'simulated_dispatch'
   | 'resolved';
 
 export type IncidentSeverity = 'low' | 'medium' | 'high' | 'critical' | 'unknown';
@@ -99,13 +99,22 @@ export interface RouteResult {
   origin_node: string;
   destination_node: string;
   algorithm: string;
+  unit_id?: string;
+  incident_id?: string;
   road_ids: string[];
   node_ids: string[];
   total_distance_meters: number;
   estimated_travel_time_seconds: number;
   estimated_travel_time_minutes: number;
   coordinates: Coordinate[];
+  unit_current_position?: Record<string, any>;
+  eta_seconds?: number;
+  route_status?: string;
+  simulation_status?: string;
+  primary_route?: any;
   avoided_roads: string[];
+  signal_priority_nodes?: string[];
+  diverted_roads?: string[];
   alternative_routes?: RouteResult[];
   explanation: string;
 }
@@ -115,13 +124,19 @@ export interface AgentLogEntry {
   role: string;
   action: string;
   reasoning: string;
+  summary?: string;
   timestamp: string;
   simulated: boolean;
+  structured_output?: Record<string, any>;
 }
 
 export interface OrchestrationState {
   workflow_id: string;
+  scenario_id?: string;
   stage: string;
+  status?: string;
+  current_step?: number;
+  total_steps?: number;
   active_incident: IncidentRecord | null;
   active_routes: RouteResult[];
   traffic_diversions: {
@@ -132,6 +147,12 @@ export interface OrchestrationState {
     corridor_nodes: string[];
     active: boolean;
   };
+  signal_priority_nodes?: string[];
+  diverted_roads?: string[];
+  dispatched_units?: EmergencyUnit[];
+  recommended_service?: string;
+  explanation?: string;
   agent_logs: AgentLogEntry[];
+  agent_log?: AgentLogEntry[];
   simulated: boolean;
 }

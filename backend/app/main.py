@@ -44,6 +44,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -55,6 +56,7 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 # Mount Member 4 routing router if available (supports both /routing and /api/v1/routing)
 if member4_routing_router:
     app.include_router(member4_routing_router)
+    app.include_router(member4_routing_router, prefix=settings.API_V1_STR)
 
 # Mount static assets directory (CCTV evidence, configs, sample feeds)
 assets_path = os.path.join(ROOT_DIR, "assets")
@@ -80,5 +82,3 @@ async def root():
         "documentation": "/docs",
         "health": "/healthz"
     }
-
-

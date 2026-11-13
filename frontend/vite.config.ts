@@ -11,6 +11,32 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
+      '/healthz': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/assets': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
+  preview: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/healthz': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/assets': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
     },
   },
 });
+

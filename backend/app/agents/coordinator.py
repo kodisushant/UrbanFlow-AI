@@ -4,6 +4,7 @@ from app.schemas.orchestration import OrchestrationState, AgentActionRecord, Sce
 from app.schemas.incident import (
     IncidentRecord,
     IncidentStatus,
+    IncidentSeverity,
     IncidentDetectionPayload,
     IncidentVerificationRequest,
     ObservedVehicle,
@@ -24,7 +25,8 @@ class WorkflowCoordinator:
     """
     Central multi-agent coordinator that manages the end-to-end scenario pipeline:
     1. Detection (Candidate) -> 2. Operator Verification -> 3. Response Recommendation ->
-    4. Simulated Dispatch & Routing -> 5. Corridor Priority & Diversion Explanation
+    4. Simulated Dispatch & Routing -> 5. Corridor Priority & Diversion Explanation ->
+    6. Incident Resolution & Reset.
     """
 
     def __init__(self):
@@ -71,7 +73,7 @@ class WorkflowCoordinator:
         self.state.agent_logs.append(record)
 
     def handle_detection(self, payload: IncidentDetectionPayload) -> IncidentRecord:
-        """Step 1: Ingest candidate detection from Member 2 CV."""
+        """Step 1: Ingest candidate detection from Member 2 CV or simulated detection."""
         incident = incident_service.create_candidate_incident(payload)
         self.state.active_incident = incident
         self.state.status = "candidate"
@@ -83,11 +85,27 @@ class WorkflowCoordinator:
         incident.structured_report = structured_rep
         incident.recommended_service = "ambulance & police_patrol"
 
+        # Safety rule: stationary vehicle alone is not automatically confirmed accident
+        is_stationary_only = (
+            payload.candidate_type == "stationary_vehicle" or
+            (payload.candidate_type == "possible_collision" and payload.confidence < 0.65)
+        )
+        if is_stationary_only:
+            summary = (
+                f"Stationary vehicle or waiting traffic observed at {incident.location_node}. "
+                "Safety policy: Not automatically treated as confirmed collision. Human verification strictly required."
+            )
+        else:
+            summary = (
+                f"Relative deceleration detected on tracked vehicles; candidate {payload.candidate_type} "
+                f"flagged with heuristic score {payload.confidence:.2f}."
+            )
+
         self.log_agent_action(
             agent_name="VisionAgent",
             role="CCTV Perception",
             action="Flagged candidate incident",
-            summary=f"Relative deceleration detected on tracked vehicles; candidate {payload.candidate_type} flagged with heuristic score {payload.confidence:.2f}.",
+            summary=summary,
             details={
                 "incident_id": incident.incident_id,
                 "camera_id": payload.camera_id,
@@ -120,12 +138,12 @@ class WorkflowCoordinator:
         else:
             self.state.status = "resolved"
             self.state.stage = "resolved"
-            self.state.explanation = f"Incident {incident_id} dismissed as false positive by operator {req.operator_id}."
+            self.state.explanation = f"Incident {incident_id} dismissed as false alarm by operator {req.operator_id}. Emergency dispatch averted."
             self.log_agent_action(
                 agent_name="IncidentAgent",
                 role="Triage & Classification",
                 action="operator_rejection",
-                summary=f"Incident {incident_id} rejected by operator {req.operator_id}.",
+                summary=f"Incident {incident_id} rejected by operator {req.operator_id} as false positive. No emergency units dispatched.",
                 details={"verified": False, "notes": req.notes}
             )
         return incident
@@ -186,6 +204,13 @@ class WorkflowCoordinator:
         incident = incident_service.get_incident(incident_id)
         if not incident:
             raise KeyError(f"Incident {incident_id} not found.")
+
+        # Strict safety guardrail: unverified or rejected incidents cannot trigger dispatch!
+        if incident.status not in (IncidentStatus.VERIFIED, IncidentStatus.RESPONSE_RECOMMENDED):
+            raise ValueError(
+                f"Safety violation: Incident {incident_id} is in status '{incident.status}'. "
+                "Only verified incidents can proceed to simulated dispatch. Unverified or rejected incidents cannot trigger emergency units."
+            )
 
         # Update unit status to DISPATCHED
         dispatched_units = []
@@ -281,10 +306,59 @@ class WorkflowCoordinator:
 
         return self.state
 
+    def handle_resolution(self, incident_id: str, operator_id: str = "OP-COMMAND-01", notes: str = "") -> IncidentRecord:
+        """Step 6: Operator marks incident as resolved, restoring grid baseline."""
+        incident = incident_service.get_incident(incident_id)
+        if not incident:
+            raise KeyError(f"Incident {incident_id} not found.")
+
+        incident_service.update_status(incident_id, IncidentStatus.RESOLVED)
+        self.state.status = "resolved"
+        self.state.stage = "incident_resolved"
+        self.state.current_step = 5
+
+        # Unblock affected roads
+        if incident.affected_road_id:
+            city_graph_service.set_road_blocked(incident.affected_road_id, False)
+            for pair in [f"{incident.affected_road_id[:-1]}B", f"{incident.affected_road_id[:-1]}A"]:
+                if city_graph_service.get_edge(pair):
+                    city_graph_service.set_road_blocked(pair, False)
+
+        # Return dispatched units to stationed / available status
+        for uid in incident.assigned_unit_ids:
+            u = resource_service.get_unit(uid)
+            if u:
+                resource_service.update_unit_status(uid, "stationed", None)
+                u.current_node = u.station_node
+                pos = city_graph_service.get_node(u.station_node)
+                if pos:
+                    u.latitude = pos.latitude
+                    u.longitude = pos.longitude
+                u.eta_seconds = None
+
+        # Reset corridor signals & diversions
+        self.state.signal_priority_corridor = {"corridor_nodes": [], "active": False}
+        self.state.signal_priority_nodes = []
+        self.state.traffic_diversions = {"diverted_road_ids": [], "diversion_route": None}
+        self.state.diverted_roads = []
+        self.state.active_routes = []
+        self.state.dispatched_units = []
+
+        self.log_agent_action(
+            agent_name="CoordinatorAgent",
+            role="Incident Resolution",
+            action=f"Incident {incident_id} Resolved",
+            summary=f"Incident {incident_id} marked resolved by {operator_id}. Road blockages cleared and units returned to stations.",
+            details={"incident_id": incident_id, "operator_id": operator_id, "notes": notes}
+        )
+        self.state.explanation = f"Incident {incident_id} successfully resolved. All corridors and units returned to baseline."
+        return incident
+
     def run_full_scenario(self, req: ScenarioRunRequest) -> OrchestrationState:
         """
-        One-click demo scenario execution:
-        Triggers the complete 8-step pipeline from simulated CCTV event to diversion.
+        Demo scenario execution:
+        If auto_verify is True, executes complete 8-step pipeline to dispatch.
+        If auto_verify is False, executes candidate detection and leaves for operator verification.
         """
         self.reset_state()
 
@@ -325,7 +399,7 @@ class WorkflowCoordinator:
 
         incident = self.handle_detection(detection)
 
-        # 3. Handle verification
+        # 3. Handle verification if auto_verify is enabled
         if req.auto_verify:
             v_req = IncidentVerificationRequest(
                 verified=True,
@@ -336,6 +410,11 @@ class WorkflowCoordinator:
 
             # 4 & 5. Dispatch and route
             self.execute_dispatch(incident.incident_id)
+        else:
+            self.state.explanation = (
+                f"Candidate incident {incident.incident_id} detected at INT-03. "
+                "Operator action required: Verify or Reject incident."
+            )
 
         return self.state
 

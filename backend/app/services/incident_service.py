@@ -27,8 +27,8 @@ class IncidentService:
         self._incident_counter += 1
 
         node = city_graph_service.get_node(payload.location_node)
-        lat = node.latitude if node else 17.3850
-        lon = node.longitude if node else 78.4867
+        lat = node.latitude if node else 17.4485
+        lon = node.longitude if node else 78.3740
 
         # Deterministically deduce severity based on observed vehicles and confidence
         severity = IncidentSeverity.MEDIUM
@@ -39,19 +39,26 @@ class IncidentService:
 
         title = f"{payload.candidate_type.replace('_', ' ').title()} near {node.name if node else payload.location_node}"
 
+        urls = list(payload.evidence_urls or [])
+        if payload.evidence_image_url and payload.evidence_image_url not in urls:
+            urls.insert(0, payload.evidence_image_url)
+
+        score = payload.heuristic_score if payload.heuristic_score is not None else payload.confidence
+
         incident = IncidentRecord(
             incident_id=incident_id,
             title=title,
             status=IncidentStatus.CANDIDATE,
             incident_type=payload.candidate_type,
             severity=severity,
-            confidence=payload.confidence,
+            confidence=payload.confidence or 0.85,
+            heuristic_score=score or 0.85,
             location_node=payload.location_node,
-            affected_road_id=payload.affected_road_id,
+            affected_road_id=payload.affected_road_id or payload.road_id,
             latitude=lat,
             longitude=lon,
-            source=payload.camera_id,
-            evidence_urls=[payload.evidence_image_url] if payload.evidence_image_url else [],
+            source=payload.camera_id or "cctv_camera_01",
+            evidence_urls=urls,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc)
         )
@@ -102,4 +109,3 @@ class IncidentService:
 
 
 incident_service = IncidentService()
-
