@@ -51,3 +51,9 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
+
+/* Smooth marker movement animation for dispatched emergency units */
+.custom-unit-icon,
+.leaflet-marker-pane .custom-unit-icon {
+  transition: transform 0.95s linear !important;
+}

@@ -17,6 +17,17 @@ class EmergencyUnit(BaseModel):
     speed_kmph: float = Field(default=55.0, gt=0.0)
     eta_seconds: Optional[int] = None
     assigned_incident_id: Optional[str] = None
+    route_geometry: List[List[float]] = Field(default_factory=list, description="Ordered [[lat, lon], ...] along route")
+    dispatch_timestamp: Optional[float] = None
+    total_route_distance_meters: Optional[float] = None
+    total_route_duration_seconds: Optional[float] = None
+    target_node: Optional[str] = None
+    home_hospital_node: Optional[str] = None
+    patient_count: int = 0
+    phase_start_time: Optional[float] = None
+    phase_duration_seconds: Optional[float] = None
+    subphase_index: int = 0
+    subphase_name: Optional[str] = None
 
     @model_validator(mode="after")
     def sync_names_and_types(self):
@@ -42,7 +53,11 @@ class ResourceStatus(str, Enum):
     AVAILABLE = "available"
     STATIONED = "stationed"
     DISPATCHED = "dispatched"
+    EN_ROUTE = "en_route"
     ON_SCENE = "on_scene"
+    LOADING = "loading"
+    TRANSPORTING = "transporting"
+    AT_HOSPITAL = "at_hospital"
     RETURNING = "returning"
     MAINTENANCE = "maintenance"
 

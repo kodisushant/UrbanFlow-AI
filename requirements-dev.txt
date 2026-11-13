@@ -1,0 +1,6 @@
+# Development & Graph Generation Dependencies
+osmnx>=2.0.0
+geopandas>=1.0.0
+networkx>=3.0.0
+shapely>=2.0.0
+

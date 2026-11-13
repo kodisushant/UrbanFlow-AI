@@ -46,6 +46,8 @@ class RouteResult(BaseModel):
     destination_node: str = "INT-03"
     algorithm: str = "astar"
     unit_id: Optional[str] = None
+    unit_type: Optional[str] = None
+    route_kind: str = "emergency_corridor"
     incident_id: Optional[str] = None
     road_ids: List[str] = Field(default_factory=list)
     node_ids: List[str] = Field(default_factory=list)
@@ -90,6 +92,7 @@ class RouteResult(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+<<<<<<< HEAD
 # -----------------------------------------------------------------------------
 # Find Path & Route Comparison Schemas
 # -----------------------------------------------------------------------------
@@ -99,11 +102,19 @@ class PathSegmentDetail(BaseModel):
     name: str
     from_node: str
     to_node: str
+=======
+class SegmentCongestionInfo(BaseModel):
+    road_id: str
+    name: str
+    source_node: str
+    target_node: str
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
     length_meters: float
     speed_limit_kmph: float
     congestion_level: str
     congestion_multiplier: float
     is_blocked: bool
+<<<<<<< HEAD
     travel_time_seconds: float
 
 
@@ -122,10 +133,38 @@ class FindPathResult(BaseModel):
     reachable: bool = True
     total_distance_meters: float = 0.0
     total_distance_km: float = 0.0
+=======
+    segment_travel_time_seconds: float
+
+
+class FindPathMode(str, Enum):
+    OPTIMISED = "optimised"
+    BASELINE = "baseline"
+
+
+class FindPathRequest(BaseModel):
+    from_node: str = Field(..., description="Origin node ID")
+    to_node: str = Field(..., description="Destination node ID")
+    mode: str = Field(default="optimised", description="'optimised' or 'baseline'")
+    algorithm: str = Field(default="astar", description="'astar' or 'dijkstra' (for optimised mode)")
+
+
+class FindPathResult(BaseModel):
+    mode: str
+    algorithm: str
+    from_node: str
+    to_node: str
+    node_sequence: List[str] = Field(default_factory=list)
+    road_ids: List[str] = Field(default_factory=list)
+    geometry: List[List[float]] = Field(default_factory=list, description="Ordered [[lat, lon], ...] coordinates along route")
+    total_distance_km: float = 0.0
+    total_distance_meters: float = 0.0
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
     estimated_travel_time_seconds: float = 0.0
     estimated_travel_time_minutes: float = 0.0
     nodes_explored: int = 0
     compute_ms: float = 0.0
+<<<<<<< HEAD
     node_ids: List[str] = Field(default_factory=list)
     road_ids: List[str] = Field(default_factory=list)
     coordinates: List[Dict[str, float]] = Field(default_factory=list)
@@ -177,3 +216,60 @@ class RandomizeTrafficResult(BaseModel):
     blocked_roads: List[str] = Field(default_factory=list)
     congested_roads_count: int = 0
     total_roads: int = 0
+=======
+    congested_segments_count: int = 0
+    blocked_roads_count: int = 0
+    has_blocked_segments: bool = False
+    detour_penalty_applied_seconds: float = 0.0
+    segments: List[SegmentCongestionInfo] = Field(default_factory=list)
+    is_reachable: bool = True
+    message: Optional[str] = None
+
+
+class ComparePathsRequest(BaseModel):
+    from_node: str = Field(..., description="Origin node ID")
+    to_node: str = Field(..., description="Destination node ID")
+    algorithm: str = Field(default="astar", description="'astar' or 'dijkstra' for optimised path")
+
+
+class ComparePathsResult(BaseModel):
+    from_node: str
+    to_node: str
+    is_reachable: bool = True
+    routes_match: bool = False
+    summary: str
+    time_saved_minutes: float = 0.0
+    time_saved_percent: float = 0.0
+    distance_diff_km: float = 0.0
+    optimised: FindPathResult
+    baseline: FindPathResult
+
+
+class RandomizeTrafficRequest(BaseModel):
+    seed: Optional[int] = Field(None, description="Optional seed for deterministic traffic generation")
+    num_blocked_roads: Optional[int] = Field(None, ge=1, le=10, description="Number of roads to block (default 2-4)")
+
+
+class RandomizeTrafficResult(BaseModel):
+    status: str
+    seed_used: int
+    blocked_roads: List[str]
+    congested_roads_count: int
+    congested_roads: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class CongestBaselineRequest(BaseModel):
+    from_node: str = Field(..., description="Origin node ID")
+    to_node: str = Field(..., description="Destination node ID")
+
+
+class CongestBaselineResult(BaseModel):
+    status: str
+    from_node: str
+    to_node: str
+    congested_roads: List[str]
+    blocked_road: Optional[str] = None
+    message: str
+
+    model_config = ConfigDict(from_attributes=True)
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7

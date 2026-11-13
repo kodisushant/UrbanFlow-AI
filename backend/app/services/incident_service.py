@@ -57,8 +57,15 @@ class IncidentService:
             affected_road_id=payload.affected_road_id or payload.road_id,
             latitude=lat,
             longitude=lon,
+<<<<<<< HEAD
             source=payload.camera_id or "cctv_camera_01",
             evidence_urls=urls,
+=======
+            source=payload.camera_id,
+            evidence_urls=[payload.evidence_image_url] if payload.evidence_image_url else [],
+            patient_count=payload.patient_count or 0,
+            scenario_type=payload.scenario_type or ("fire" if "fire" in str(payload.candidate_type).lower() else "accident"),
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc)
         )

@@ -9,11 +9,17 @@ import {
   Truck,
   Zap,
   AlertTriangle,
+<<<<<<< HEAD
   Radio,
   Compass,
+=======
+  Route,
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
 } from 'lucide-react';
 import { BackendStatus } from '../services/api';
 import { AppMode } from '../types';
+
+export type DashboardMode = 'scenario' | 'find_path';
 
 interface HeaderProps {
   simulationTime: number;
@@ -27,9 +33,14 @@ interface HeaderProps {
   dispatchedUnitsCount: number;
   activeCorridorsCount: number;
   backendStatus?: BackendStatus;
+<<<<<<< HEAD
   isOperating?: boolean;
   mode?: AppMode;
   onModeChange?: (mode: AppMode) => void;
+=======
+  mode?: DashboardMode;
+  onModeChange?: (mode: DashboardMode) => void;
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -44,7 +55,10 @@ export const Header: React.FC<HeaderProps> = ({
   dispatchedUnitsCount,
   activeCorridorsCount,
   backendStatus = 'offline',
+<<<<<<< HEAD
   isOperating = false,
+=======
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
   mode = 'scenario',
   onModeChange,
 }) => {
@@ -52,6 +66,13 @@ export const Header: React.FC<HeaderProps> = ({
     const mins = Math.floor(seconds / 60);
     const secs = (seconds % 60).toFixed(1);
     return `T+${String(mins).padStart(2, '0')}:${String(secs).padStart(4, '0')}s`;
+  };
+
+  const handleScenarioClick = () => {
+    if (mode !== 'scenario' && onModeChange) {
+      onModeChange('scenario');
+    }
+    onRunScenario();
   };
 
   return (
@@ -242,7 +263,61 @@ export const Header: React.FC<HeaderProps> = ({
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>
+<<<<<<< HEAD
       </header>
     </>
   );
+=======
+
+        {/* Simulation Clock */}
+        <div className="px-3 py-1.5 rounded-md bg-slate-950 border border-cyan-900/50 text-cyan-300 font-mono text-sm tracking-widest font-bold">
+          {formatTime(simulationTime)}
+        </div>
+      </div>
+
+      {/* Mode Switch & Scenario Controls */}
+      <div className="flex items-center space-x-3">
+        {/* Run Scenario Button */}
+        <button
+          onClick={handleScenarioClick}
+          disabled={isRunning}
+          className={`flex items-center space-x-2 px-4 py-2 rounded-md font-semibold text-xs tracking-wider uppercase transition-all duration-150 ${
+            mode === 'scenario'
+              ? 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-900/40 border border-cyan-400/40 ring-2 ring-cyan-500/30'
+              : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
+          }`}
+          title="Run Incident & Emergency Dispatch Scenario"
+        >
+          <Play className="w-3.5 h-3.5 fill-current" />
+          <span>{isRunning ? 'Running Demo...' : 'Run Scenario'}</span>
+        </button>
+
+        {/* Find Path Toggle Button */}
+        <button
+          onClick={() => onModeChange && onModeChange(mode === 'find_path' ? 'scenario' : 'find_path')}
+          className={`flex items-center space-x-2 px-4 py-2 rounded-md font-semibold text-xs tracking-wider uppercase transition-all duration-150 ${
+            mode === 'find_path'
+              ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/40 border border-indigo-400/40 ring-2 ring-indigo-500/30'
+              : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
+          }`}
+          title="Switch to Interactive Route Optimisation Comparison Mode"
+        >
+          <Route className="w-3.5 h-3.5" />
+          <span>Find Path</span>
+        </button>
+
+        {/* Reset Button */}
+        <button
+          onClick={onReset}
+          className="flex items-center space-x-2 px-3 py-2 rounded-md font-semibold text-xs tracking-wider uppercase bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
+          title="Reset Simulation & Clear Active State"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          <span>Reset</span>
+        </button>
+      </div>
+    </header>
+  </>
+);
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
 };

@@ -31,6 +31,7 @@ export interface RoadSegment {
   congestion_weight_multiplier: number;
   is_blocked: boolean;
   is_diverted: boolean;
+  geometry?: [number, number][];
 }
 
 export interface CityGraph {
@@ -39,11 +40,20 @@ export interface CityGraph {
   edges: RoadSegment[];
 }
 
+<<<<<<< HEAD
 export type IncidentStatus =
   | 'candidate'
   | 'verified'
   | 'response_recommended'
   | 'simulated_dispatch'
+=======
+export type IncidentStatus = 
+  | 'candidate' 
+  | 'verified' 
+  | 'response_recommended' 
+  | 'simulated_dispatch' 
+  | 'on_scene'
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
   | 'resolved';
 
 export type IncidentSeverity = 'low' | 'medium' | 'high' | 'critical' | 'unknown';
@@ -60,6 +70,8 @@ export interface IncidentRecord {
   title: string;
   status: IncidentStatus;
   incident_type: string;
+  scenario_type?: string;
+  patient_count?: number;
   severity: IncidentSeverity;
   heuristic_score: number;
   location_node: string;
@@ -77,7 +89,17 @@ export interface IncidentRecord {
 
 export type ResourceType = 'ambulance' | 'fire_engine' | 'police_patrol';
 
-export type ResourceStatus = 'stationed' | 'dispatched' | 'on_scene' | 'returning' | 'maintenance';
+export type ResourceStatus = 
+  | 'available' 
+  | 'stationed' 
+  | 'dispatched' 
+  | 'en_route' 
+  | 'on_scene' 
+  | 'loading' 
+  | 'transporting' 
+  | 'at_hospital' 
+  | 'returning' 
+  | 'maintenance';
 
 export interface EmergencyUnit {
   unit_id: string;
@@ -92,6 +114,12 @@ export interface EmergencyUnit {
   assigned_incident_id?: string;
   capabilities: string[];
   eta_seconds?: number;
+  route_geometry?: [number, number][];
+  dispatch_timestamp?: number;
+  home_hospital_node?: string;
+  patient_count?: number;
+  phase_start_time?: number;
+  phase_duration_seconds?: number;
 }
 
 export interface RouteResult {
@@ -117,6 +145,9 @@ export interface RouteResult {
   diverted_roads?: string[];
   alternative_routes?: RouteResult[];
   explanation: string;
+  unit_id?: string;
+  unit_type?: string;
+  route_kind?: string;
 }
 
 export interface AgentLogEntry {
@@ -157,6 +188,7 @@ export interface OrchestrationState {
   simulated: boolean;
 }
 
+<<<<<<< HEAD
 
 // -----------------------------------------------------------------------------
 // Find Path & Route Comparison Types
@@ -169,12 +201,23 @@ export interface PathSegmentDetail {
   name: string;
   from_node: string;
   to_node: string;
+=======
+export interface SegmentCongestionInfo {
+  road_id: string;
+  name: string;
+  source_node: string;
+  target_node: string;
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
   length_meters: number;
   speed_limit_kmph: number;
   congestion_level: string;
   congestion_multiplier: number;
   is_blocked: boolean;
+<<<<<<< HEAD
   travel_time_seconds: number;
+=======
+  segment_travel_time_seconds: number;
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
 }
 
 export interface FindPathResult {
@@ -182,13 +225,22 @@ export interface FindPathResult {
   algorithm: string;
   from_node: string;
   to_node: string;
+<<<<<<< HEAD
   reachable: boolean;
   total_distance_meters: number;
   total_distance_km: number;
+=======
+  node_sequence: string[];
+  road_ids: string[];
+  geometry: [number, number][];
+  total_distance_km: number;
+  total_distance_meters: number;
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
   estimated_travel_time_seconds: number;
   estimated_travel_time_minutes: number;
   nodes_explored: number;
   compute_ms: number;
+<<<<<<< HEAD
   node_ids: string[];
   road_ids: string[];
   coordinates: Coordinate[];
@@ -220,12 +272,40 @@ export interface ComparePathResult {
   baseline?: FindPathResult;
   comparison?: PathComparison;
   error_message?: string;
+=======
+  congested_segments_count: number;
+  blocked_roads_count: number;
+  has_blocked_segments: boolean;
+  detour_penalty_applied_seconds: number;
+  segments: SegmentCongestionInfo[];
+  is_reachable: boolean;
+  message?: string;
+}
+
+export interface ComparePathsResult {
+  from_node: string;
+  to_node: string;
+  is_reachable: boolean;
+  routes_match: boolean;
+  summary: string;
+  time_saved_minutes: number;
+  time_saved_percent: number;
+  distance_diff_km: number;
+  optimised: FindPathResult;
+  baseline: FindPathResult;
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
 }
 
 export interface RandomizeTrafficResult {
   status: string;
+<<<<<<< HEAD
   seed?: number;
   blocked_roads: string[];
   congested_roads_count: number;
   total_roads: number;
+=======
+  seed_used: number;
+  blocked_roads: string[];
+  congested_roads_count: number;
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
 }

@@ -63,16 +63,23 @@ function updateBackendStatus(newStatus: BackendStatus) {
 
 async function safeFetch<T>(endpoint: string, options?: RequestInit, fallback?: T): Promise<T> {
   const isPost = options?.method?.toUpperCase() === 'POST';
+<<<<<<< HEAD
   const url = `${BASE_URL}${endpoint}`;
 
   try {
     const res = await fetch(url, {
+=======
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${endpoint}`, {
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
       ...options,
       headers: {
         'Content-Type': 'application/json',
         ...options?.headers,
       },
     });
+<<<<<<< HEAD
 
     if (!res.ok) {
       let errorDetail = `HTTP ${res.status}: ${res.statusText}`;
@@ -109,20 +116,41 @@ async function safeFetch<T>(endpoint: string, options?: RequestInit, fallback?: 
       }
     }
 
+=======
+  } catch (netErr: any) {
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
     updateBackendStatus('offline');
-    console.warn(`[UrbanFlow API] Request failed for ${endpoint}:`, error);
-
+    console.warn(`[UrbanFlow API] Network failure for ${endpoint}:`, netErr);
     if (isPost) {
-      const errorMsg = `Action failed: Backend is down (${error?.message || 'Network unreachable'}). Live simulation actions require the FastAPI backend.`;
+      const errorMsg = `Action failed: Backend is down (${netErr?.message || 'Network unreachable'}). Live simulation actions require the FastAPI backend.`;
       triggerToast(errorMsg, 'error');
       throw new Error(errorMsg);
     }
-
     if (fallback !== undefined) {
       return fallback;
     }
-    throw error;
+    throw netErr;
   }
+
+  // Backend responded!
+  updateBackendStatus('live');
+  if (!res.ok) {
+    let detailMsg = res.statusText;
+    try {
+      const body = await res.json();
+      if (body.detail) {
+        if (typeof body.detail === 'string') detailMsg = body.detail;
+        else if (body.detail.message) detailMsg = body.detail.message;
+      }
+    } catch (_) {}
+    const errorMsg = detailMsg || `API error ${res.status}`;
+    if (isPost) {
+      triggerToast(errorMsg, 'error');
+    }
+    throw new Error(errorMsg);
+  }
+
+  return await res.json();
 }
 
 export const api = {
@@ -162,6 +190,7 @@ export const api = {
     return safeFetch('/simulation/reset', { method: 'POST' });
   },
 
+<<<<<<< HEAD
   toggleRoadClosure: async (roadId: string, isBlocked: boolean): Promise<any> => {
     return safeFetch('/simulation/road-closure', {
       method: 'POST',
@@ -221,6 +250,35 @@ export const api = {
           : 'Candidate event queued for manual operator verification.',
       }),
     });
+=======
+  getSimulationTick: async (speed = 5.0): Promise<EmergencyUnit[]> => {
+    return safeFetch<EmergencyUnit[]>(`/simulation/tick?speed=${speed}`, undefined, mockEmergencyUnits);
+  },
+
+  // 2. Multi-Agent Orchestration
+  getOrchestrationState: async (): Promise<OrchestrationState> => {
+    return safeFetch<OrchestrationState>('/orchestration/state', undefined, mockOrchestrationState);
+  },
+
+  runScenario: async (
+    scenarioName = 'Cyber City Emergency Response',
+    autoVerify = true,
+    scenarioType?: string,
+    seed?: number
+  ): Promise<OrchestrationState> => {
+    return safeFetch<OrchestrationState>(
+      '/orchestration/run-scenario',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          scenario_name: scenarioName,
+          auto_verify: autoVerify,
+          scenario_type: scenarioType,
+          seed: seed,
+        }),
+      }
+    );
+>>>>>>> d90ee6792b56d2d6e2a40fe0f9f641b92714d2f7
   },
 
   // 3. Incidents
@@ -340,5 +398,70 @@ export const api = {
         max_blocks: maxBlocks,
       }),
     });
+  },
+
+  // 5. Find Path Mode & Traffic Comparison
+  findPath: async (
+    fromNode: string,
+    toNode: string,
+    mode: 'optimised' | 'baseline' = 'optimised',
+    algorithm: 'astar' | 'dijkstra' = 'astar'
+  ): Promise<any> => {
+    return safeFetch(
+      '/routing/find-path',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          from_node: fromNode,
+          to_node: toNode,
+          mode: mode,
+          algorithm: algorithm,
+        }),
+      }
+    );
+  },
+
+  comparePaths: async (
+    fromNode: string,
+    toNode: string,
+    algorithm: 'astar' | 'dijkstra' = 'astar'
+  ): Promise<any> => {
+    return safeFetch(
+      '/routing/compare',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          from_node: fromNode,
+          to_node: toNode,
+          algorithm: algorithm,
+        }),
+      }
+    );
+  },
+
+  randomizeTraffic: async (seed?: number, numBlocked?: number): Promise<any> => {
+    return safeFetch(
+      '/routing/randomize-traffic',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          seed: seed,
+          num_blocked_roads: numBlocked,
+        }),
+      }
+    );
+  },
+
+  congestBaselineRoute: async (fromNode: string, toNode: string): Promise<any> => {
+    return safeFetch(
+      '/routing/congest-baseline',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          from_node: fromNode,
+          to_node: toNode,
+        }),
+      }
+    );
   },
 };

@@ -72,6 +72,8 @@ class OrchestrationState(BaseModel):
 
 class ScenarioRunRequest(BaseModel):
     scenario_name: str = Field(default="Cyber City Emergency Response")
+    scenario_type: Optional[str] = Field(default=None, description="accident | fire")
+    seed: Optional[int] = Field(default=None, description="Optional random seed for reproducible demo")
     auto_verify: bool = Field(default=True, description="Automatically trigger operator verification for 1-click demo")
     operator_id: str = Field(default="AUTO_DISPATCHER_01")
     operator_notes: Optional[str] = Field(default="Automated live verification for demonstration run.")

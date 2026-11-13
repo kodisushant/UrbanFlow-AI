@@ -10,6 +10,7 @@ class IncidentStatus(str, Enum):
     VERIFIED = "verified"
     RESPONSE_RECOMMENDED = "response_recommended"
     SIMULATED_DISPATCH = "simulated_dispatch"
+    ON_SCENE = "on_scene"
     RESOLVED = "resolved"
 
 
@@ -43,6 +44,8 @@ class IncidentDetectionPayload(BaseModel):
     evidence_image_url: Optional[str] = Field(default=None)
     evidence_urls: List[str] = Field(default_factory=list)
     observed_vehicles: List[ObservedVehicle] = Field(default_factory=list)
+    patient_count: Optional[int] = Field(default=0)
+    scenario_type: Optional[str] = Field(default="accident")
     is_simulated: bool = Field(default=True)
 
     @model_validator(mode="after")
@@ -95,6 +98,8 @@ class IncidentRecord(BaseModel):
     structured_report: Optional[str] = None
     recommended_service: Optional[str] = None
     assigned_unit_ids: List[str] = Field(default_factory=list)
+    patient_count: int = Field(default=0, description="Reported or triage patient count")
+    scenario_type: Optional[str] = Field(default="accident", description="accident | fire")
 
     @model_validator(mode="after")
     def sync_record_fields(self):
