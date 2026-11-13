@@ -1,10 +1,15 @@
 [
   {
     "unit_id": "AMB-01",
+    "call_sign": "Medic One ALS",
+    "name": "Medic One ALS",
     "type": "ambulance",
-    "location_node": "INT-04",
-    "latitude": 17.46,
-    "longitude": 78.372,
+    "unit_type": "ambulance",
+    "station_node": "INT-04",
+    "current_node": "INT-20",
+    "latitude": 17.455142,
+    "longitude": 78.372193,
+    "status": "available",
     "availability": "available",
     "capabilities": [
       "advanced_life_support",
@@ -12,31 +17,41 @@
       "ventilator",
       "defibrillator"
     ],
+    "speed_kmph": 55.0,
     "speed_factor": 1.25,
-    "busy_until_seconds": 0.0,
     "simulated": true
   },
   {
     "unit_id": "AMB-02",
+    "call_sign": "Medic Two BLS",
+    "name": "Medic Two BLS",
     "type": "ambulance",
-    "location_node": "INT-13",
-    "latitude": 17.422,
-    "longitude": 78.373,
+    "unit_type": "ambulance",
+    "station_node": "INT-13",
+    "current_node": "INT-13",
+    "latitude": 17.438042,
+    "longitude": 78.373479,
+    "status": "available",
     "availability": "available",
     "capabilities": [
       "basic_life_support",
       "emergency_transport"
     ],
+    "speed_kmph": 55.0,
     "speed_factor": 1.25,
-    "busy_until_seconds": 0.0,
     "simulated": true
   },
   {
     "unit_id": "FIRE-01",
+    "call_sign": "Tower Rescue 7",
+    "name": "Tower Rescue 7",
     "type": "fire_engine",
-    "location_node": "INT-07",
-    "latitude": 17.449,
-    "longitude": 78.355,
+    "unit_type": "fire_engine",
+    "station_node": "INT-07",
+    "current_node": "INT-07",
+    "latitude": 17.448111,
+    "longitude": 78.363539,
+    "status": "available",
     "availability": "available",
     "capabilities": [
       "water_tender",
@@ -44,40 +59,49 @@
       "ladder",
       "hazmat_containment"
     ],
+    "speed_kmph": 50.0,
     "speed_factor": 1.2,
-    "busy_until_seconds": 0.0,
     "simulated": true
   },
   {
     "unit_id": "POLICE-01",
-    "type": "police",
-    "location_node": "INT-05",
-    "latitude": 17.438,
-    "longitude": 78.385,
+    "call_sign": "Patrol Alpha",
+    "name": "Patrol Alpha",
+    "type": "police_patrol",
+    "unit_type": "police_patrol",
+    "station_node": "INT-05",
+    "current_node": "INT-05",
+    "latitude": 17.43771,
+    "longitude": 78.382441,
+    "status": "available",
     "availability": "available",
     "capabilities": [
       "traffic_control",
       "perimeter_security",
-      "incident_investigation"
+      "siren_preemption"
     ],
+    "speed_kmph": 60.0,
     "speed_factor": 1.3,
-    "busy_until_seconds": 0.0,
     "simulated": true
   },
   {
     "unit_id": "POLICE-02",
-    "type": "police",
-    "location_node": "INT-11",
-    "latitude": 17.452,
-    "longitude": 78.398,
+    "call_sign": "East Patrol Delta",
+    "name": "East Patrol Delta",
+    "type": "police_patrol",
+    "unit_type": "police_patrol",
+    "station_node": "INT-11",
+    "current_node": "INT-11",
+    "latitude": 17.446986,
+    "longitude": 78.37782,
+    "status": "available",
     "availability": "available",
     "capabilities": [
-      "rapid_response",
-      "crowd_diversion",
-      "motorcycle_escort"
+      "traffic_enforcement",
+      "intersection_cordon"
     ],
-    "speed_factor": 1.35,
-    "busy_until_seconds": 0.0,
+    "speed_kmph": 60.0,
+    "speed_factor": 1.3,
     "simulated": true
   }
 ]

@@ -36,13 +36,32 @@ export const ResourceList: React.FC<ResourceListProps> = ({ units }) => {
       <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
         {units.map((unit) => {
           const badge = getUnitBadge(unit.unit_type);
-          const isEnRoute = unit.status === 'dispatched';
+          const isActive = unit.status !== 'available' && unit.status !== 'stationed';
+          const isMoving = unit.status === 'en_route' || unit.status === 'transporting' || unit.status === 'returning';
+
+          const getStatusBadgeStyle = (st: string) => {
+            switch (st) {
+              case 'en_route':
+                return 'bg-cyan-950 text-cyan-300 border-cyan-800 animate-pulse';
+              case 'transporting':
+                return 'bg-teal-950 text-teal-300 border-teal-800 animate-pulse';
+              case 'returning':
+                return 'bg-indigo-950 text-indigo-300 border-indigo-800';
+              case 'loading':
+              case 'at_hospital':
+              case 'on_scene':
+                return 'bg-amber-950 text-amber-300 border-amber-800';
+              case 'available':
+              default:
+                return 'bg-slate-800 text-slate-400 border-slate-700';
+            }
+          };
 
           return (
             <div
               key={unit.unit_id}
               className={`p-2 rounded-md border transition ${
-                isEnRoute
+                isActive
                   ? 'bg-slate-900 border-cyan-500/40 shadow-sm shadow-cyan-950'
                   : 'bg-slate-950/60 border-slate-800/80'
               }`}
@@ -60,18 +79,21 @@ export const ResourceList: React.FC<ResourceListProps> = ({ units }) => {
 
                 <div className="text-right">
                   <span
-                    className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${
-                      isEnRoute
-                        ? 'bg-cyan-950 text-cyan-400 border-cyan-800 animate-pulse'
-                        : 'bg-slate-800 text-slate-400 border-slate-700'
-                    }`}
+                    className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${getStatusBadgeStyle(
+                      unit.status
+                    )}`}
                   >
-                    {unit.status}
+                    {unit.status.replace('_', ' ')}
                   </span>
-                  {unit.eta_seconds && isEnRoute && (
+                  {unit.patient_count !== undefined && unit.patient_count > 0 && (
+                    <div className="text-[9px] font-mono text-rose-400 font-bold mt-0.5">
+                      🚑 {unit.patient_count} patient(s)
+                    </div>
+                  )}
+                  {unit.eta_seconds !== undefined && unit.eta_seconds !== null && isMoving && (
                     <div className="flex items-center justify-end space-x-1 text-[10px] font-mono text-cyan-300 mt-1">
                       <Clock className="w-3 h-3 text-cyan-400" />
-                      <span>~{Math.round(unit.eta_seconds / 60)} min ETA</span>
+                      <span>{unit.eta_seconds > 60 ? `~${Math.round(unit.eta_seconds / 60)} min` : `${Math.round(unit.eta_seconds)}s`} ETA</span>
                     </div>
                   )}
                 </div>

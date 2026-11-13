@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from app.schemas.orchestration import OrchestrationState, ScenarioRunRequest
 from app.agents.coordinator import workflow_coordinator
 
@@ -21,5 +21,11 @@ async def trigger_demo_scenario(req: ScenarioRunRequest) -> OrchestrationState:
     Executes the complete 8-step pipeline:
     Observe -> Detect -> Verify -> Classify -> Coordinate -> Optimize -> Divert -> Explain.
     """
-    return workflow_coordinator.run_full_scenario(req)
+    try:
+        return workflow_coordinator.run_full_scenario(req)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": "MISSION_IN_PROGRESS", "message": str(e)}
+        )
 

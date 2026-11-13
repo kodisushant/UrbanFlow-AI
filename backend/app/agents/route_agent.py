@@ -67,11 +67,12 @@ class RouteOptimizationAgent:
             city_graph_service.set_road_diverted(d_road, True)
 
         # 5. Extract coordinate list for frontend Leaflet polyline rendering
-        coords = []
-        for nid in primary_path.node_sequence:
-            node = city_graph_service.get_node(nid)
-            if node:
-                coords.append({"latitude": node.latitude, "longitude": node.longitude})
+        coords = list(primary_path.coordinates) if primary_path.coordinates else []
+        if not coords:
+            for nid in primary_path.node_sequence:
+                node = city_graph_service.get_node(nid)
+                if node:
+                    coords.append({"latitude": node.latitude, "longitude": node.longitude})
 
         # 6. Formulate human-readable explanation
         eta_min = round(primary_path.estimated_travel_time_seconds / 60.0, 1)
@@ -96,6 +97,8 @@ class RouteOptimizationAgent:
             destination_node=destination,
             algorithm=algorithm,
             unit_id=unit.unit_id,
+            unit_type=unit.unit_type,
+            route_kind="emergency_corridor",
             incident_id=incident.incident_id,
             road_ids=primary_path.road_ids,
             node_ids=primary_path.node_sequence,

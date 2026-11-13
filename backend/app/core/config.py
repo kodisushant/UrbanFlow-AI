@@ -19,6 +19,9 @@ class Settings(BaseModel):
     
     DEFAULT_CITY_NAME: str = "Metropolis SmartGrid"
     DEMO_OPERATOR_ID: str = os.getenv("DEMO_OPERATOR_ID", "DISPATCHER_LEAD_01")
+    
+    # Detour penalty in seconds for baseline navigation encountering a blocked road (e.g., 5 minutes = 300s)
+    BLOCKED_ROAD_DETOUR_PENALTY_SECONDS: float = 300.0
 
 
 settings = Settings()

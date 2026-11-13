@@ -28,13 +28,17 @@ class RoadSegment(BaseModel):
     name: str = Field(..., description="Road name e.g., Central Grand Blvd")
     source_node: str = Field(..., description="Origin intersection node ID")
     target_node: str = Field(..., description="Destination intersection node ID")
+    source: Optional[str] = None
+    target: Optional[str] = None
     length_meters: float = Field(..., gt=0.0)
+    length_m: Optional[float] = None
     speed_limit_kmph: float = Field(default=50.0, gt=0.0)
     base_travel_time_seconds: int = Field(..., gt=0)
     current_congestion_level: str = "free_flow"
     congestion_weight_multiplier: float = Field(default=1.0, ge=1.0)
     is_blocked: bool = False
     is_diverted: bool = False
+    geometry: List[List[float]] = Field(default_factory=list, description="Ordered list of [lat, lon] points along real road")
 
     model_config = ConfigDict(from_attributes=True)
 
