@@ -1,9 +1,38 @@
-# UrbanFlow AI — Traffic Intelligence & ML Forecasting (Member 3)
+# UrbanFlow AI — Adaptive Multi-Agent Traffic Intelligence & Emergency Response System
 
-Part of the **UrbanFlow AI** adaptive traffic and emergency response system.
+An end-to-end intelligent transportation and emergency corridor dispatch system integrating real-time CCTV computer vision, machine learning congestion forecasting, deterministic A*/Dijkstra routing, and an interactive Leaflet tactical command dashboard.
+
+---
+
+## Quick Start
+
+### 1. Backend Server (FastAPI)
+Install dependencies and launch the backend API service:
+```bash
+pip install -r backend/requirements.txt
+python backend/run.py
+```
+> The backend server starts on **http://localhost:8000** with interactive Swagger documentation at **http://localhost:8000/docs**.  
+> *(Note: `backend/requirements.txt` or root `requirements.txt` can both be used).*
+
+### 2. Frontend Command Dashboard (React + Vite + Leaflet)
+Install node dependencies and launch the frontend:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+> The command center dashboard opens on **http://localhost:5173**. Vite automatically proxies `/api` calls to `http://localhost:8000`.
+
+### 3. One-Click Launch (Windows)
+```cmd
+start_urbanflow.bat
+```
+
+---
 
 ## 1. Overview
-The **Traffic Intelligence** module is responsible for:
+The **UrbanFlow AI** platform coordinates:
 - Ingesting vehicle detections and traffic observations from CCTV or traffic simulators (Member 2).
 - Computing traffic density, passenger car units (PCU), speed estimations, and composite congestion indices.
 - Identifying abnormal traffic congestion and road blockages.

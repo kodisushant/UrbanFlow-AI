@@ -214,9 +214,10 @@ export const CityMap: React.FC<CityMapProps> = ({
 
         {/* Dark Matter Base Tiles */}
         <TileLayer
-          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; OpenStreetMap contributors'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
           maxZoom={19}
+          className="dark-tiles"
         />
 
         {/* 1. Road Network Congestion Layer */}
@@ -379,8 +380,8 @@ export const CityMap: React.FC<CityMapProps> = ({
             const fillColor = isCorridor
               ? '#22c55e'
               : node.signal_state === 'caution_flashing'
-              ? '#f59e0b'
-              : '#10b981';
+                ? '#f59e0b'
+                : '#10b981';
 
             return (
               <CircleMarker

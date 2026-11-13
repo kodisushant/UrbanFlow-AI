@@ -13,72 +13,113 @@ import {
 
 // Centralized API configuration
 // Supports Vite reverse proxy `/api/v1` or explicit backend URL via environment variable
-const BASE_URL = ((import.meta as any).env?.VITE_API_BASE_URL as string) || '/api/v1';
-const DIRECT_BACKEND_URL = 'http://localhost:8000/api/v1';
+const BASE_URL = import.meta.env.VITE_API_URL ?? '/api/v1';
 
-export class ApiError extends Error {
-  status: number;
-  code?: string;
-  constructor(message: string, status: number, code?: string) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-    this.code = code;
+export type BackendStatus = 'live' | 'offline';
+
+type StatusListener = (status: BackendStatus) => void;
+type ToastListener = (message: string, type: 'error' | 'success' | 'info') => void;
+
+const statusListeners: Set<StatusListener> = new Set();
+let toastListener: ToastListener | null = null;
+let currentBackendStatus: BackendStatus = 'offline';
+
+export function getBackendStatus(): BackendStatus {
+  return currentBackendStatus;
+}
+
+export function onBackendStatusChange(listener: StatusListener): () => void {
+  statusListeners.add(listener);
+  listener(currentBackendStatus);
+  return () => {
+    statusListeners.delete(listener);
+  };
+}
+
+export function registerToastHandler(handler: ToastListener): () => void {
+  toastListener = handler;
+  return () => {
+    if (toastListener === handler) {
+      toastListener = null;
+    }
+  };
+}
+
+export function triggerToast(message: string, type: 'error' | 'success' | 'info' = 'error') {
+  if (toastListener) {
+    toastListener(message, type);
   }
 }
 
-async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const primaryUrl = `${BASE_URL}${endpoint}`;
-  let response: Response;
+function updateBackendStatus(newStatus: BackendStatus) {
+  if (currentBackendStatus !== newStatus) {
+    currentBackendStatus = newStatus;
+    statusListeners.forEach((l) => l(newStatus));
+  }
+}
+
+async function safeFetch<T>(endpoint: string, options?: RequestInit, fallback?: T): Promise<T> {
+  const isPost = options?.method?.toUpperCase() === 'POST';
+  const url = `${BASE_URL}${endpoint}`;
 
   try {
-    response = await fetch(primaryUrl, {
+    const res = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
         ...options?.headers,
       },
     });
-  } catch (netErr) {
-    // If reverse proxy failed or Vite isn't proxying, attempt direct backend call
-    if (!BASE_URL.startsWith('http')) {
+
+    if (!res.ok) {
+      let errorDetail = `HTTP ${res.status}: ${res.statusText}`;
       try {
-        const directUrl = `${DIRECT_BACKEND_URL}${endpoint}`;
-        response = await fetch(directUrl, {
-          ...options,
-          headers: {
-            'Content-Type': 'application/json',
-            ...options?.headers,
-          },
-        });
-      } catch {
-        throw netErr;
-      }
-    } else {
-      throw netErr;
-    }
-  }
-
-  if (!response.ok) {
-    let errorDetail = `HTTP ${response.status}: ${response.statusText}`;
-    let errorCode: string | undefined;
-    try {
-      const errJson = await response.json();
-      if (errJson.detail) {
-        if (typeof errJson.detail === 'object') {
-          errorDetail = errJson.detail.message || JSON.stringify(errJson.detail);
-          errorCode = errJson.detail.code;
-        } else {
-          errorDetail = String(errJson.detail);
+        const errJson = await res.json();
+        if (errJson.detail) {
+          errorDetail = typeof errJson.detail === 'object'
+            ? errJson.detail.message || JSON.stringify(errJson.detail)
+            : String(errJson.detail);
         }
+      } catch {
+        // ignore json parse errors on error responses
       }
-    } catch {
-      // ignore json parse error on error responses
+      throw new Error(errorDetail);
     }
-    throw new ApiError(errorDetail, response.status, errorCode);
-  }
 
-  return (await response.json()) as T;
+    updateBackendStatus('live');
+    return await res.json();
+  } catch (error: any) {
+    // On network failure, attempt direct localhost:8000 as fallback if proxy-relative
+    if (!BASE_URL.startsWith('http') && !error.message?.startsWith('HTTP')) {
+      try {
+        const directUrl = `http://localhost:8000/api/v1${endpoint}`;
+        const directRes = await fetch(directUrl, {
+          ...options,
+          headers: { 'Content-Type': 'application/json', ...options?.headers },
+        });
+        if (directRes.ok) {
+          updateBackendStatus('live');
+          return await directRes.json();
+        }
+      } catch {
+        // direct fallback also failed
+      }
+    }
+
+    updateBackendStatus('offline');
+    console.warn(`[UrbanFlow API] Request failed for ${endpoint}:`, error);
+
+    if (isPost) {
+      const errorMsg = `Action failed: Backend is down (${error?.message || 'Network unreachable'}). Live simulation actions require the FastAPI backend.`;
+      triggerToast(errorMsg, 'error');
+      throw new Error(errorMsg);
+    }
+
+    if (fallback !== undefined) {
+      return fallback;
+    }
+    throw error;
+  }
 }
 
 export const api = {
@@ -88,6 +129,7 @@ export const api = {
       const res = await fetch('/healthz');
       if (res.ok) {
         const data = await res.json();
+        updateBackendStatus('live');
         return { status: data.status || 'healthy', online: true };
       }
       return { status: 'offline', online: false };
@@ -97,47 +139,42 @@ export const api = {
         const direct = await fetch('http://localhost:8000/healthz');
         if (direct.ok) {
           const data = await direct.json();
+          updateBackendStatus('live');
           return { status: data.status || 'healthy', online: true };
         }
       } catch {
         // unreachable
       }
+      updateBackendStatus('offline');
       return { status: 'unreachable', online: false };
     }
   },
 
   // 1. Simulation & City Graph
   getCityGraph: async (): Promise<CityGraph> => {
-    try {
-      return await request<CityGraph>('/simulation/city-graph');
-    } catch (err) {
-      console.warn('[UrbanFlow API] Fallback to seeded city graph:', err);
-      return mockCityGraph;
-    }
+    return safeFetch<CityGraph>('/simulation/city-graph', undefined, mockCityGraph);
   },
 
   resetSimulation: async (): Promise<{ status: string; message: string }> => {
-    return await request<{ status: string; message: string }>('/simulation/reset', {
-      method: 'POST',
-    });
+    return safeFetch('/simulation/reset', { method: 'POST' });
   },
 
   toggleRoadClosure: async (roadId: string, isBlocked: boolean): Promise<any> => {
-    return await request('/simulation/road-closure', {
+    return safeFetch('/simulation/road-closure', {
       method: 'POST',
       body: JSON.stringify({ road_id: roadId, is_blocked: isBlocked }),
     });
   },
 
   toggleRoadDivert: async (roadId: string, isDiverted: boolean): Promise<any> => {
-    return await request('/simulation/road-divert', {
+    return safeFetch('/simulation/road-divert', {
       method: 'POST',
       body: JSON.stringify({ road_id: roadId, is_diverted: isDiverted }),
     });
   },
 
   setSignalPriority: async (nodeIds: string[], active: boolean = true): Promise<any> => {
-    return await request('/simulation/signal-priority', {
+    return safeFetch('/simulation/signal-priority', {
       method: 'POST',
       body: JSON.stringify({ node_ids: nodeIds, active }),
     });
@@ -149,7 +186,7 @@ export const api = {
     candidateType: string = 'possible_collision',
     confidence: number = 0.85
   ): Promise<IncidentRecord> => {
-    return await request<IncidentRecord>('/simulation/detect-candidate', {
+    return safeFetch<IncidentRecord>('/simulation/detect-candidate', {
       method: 'POST',
       body: JSON.stringify({
         location_node: locationNode,
@@ -163,19 +200,14 @@ export const api = {
 
   // 2. Multi-Agent Orchestration
   getOrchestrationState: async (): Promise<OrchestrationState> => {
-    try {
-      return await request<OrchestrationState>('/orchestration/state');
-    } catch (err) {
-      console.warn('[UrbanFlow API] Fallback to standby orchestration state:', err);
-      return standbyOrchestrationState;
-    }
+    return safeFetch<OrchestrationState>('/orchestration/state', undefined, standbyOrchestrationState);
   },
 
   runScenario: async (
     scenarioName: string = 'Cyber City Emergency Response',
     autoVerify: boolean = false
   ): Promise<OrchestrationState> => {
-    return await request<OrchestrationState>('/orchestration/run-scenario', {
+    return safeFetch<OrchestrationState>('/orchestration/run-scenario', {
       method: 'POST',
       body: JSON.stringify({
         scenario_name: scenarioName,
@@ -190,12 +222,7 @@ export const api = {
 
   // 3. Incidents
   getIncidents: async (): Promise<IncidentRecord[]> => {
-    try {
-      return await request<IncidentRecord[]>('/incidents');
-    } catch (err) {
-      console.warn('[UrbanFlow API] Fallback to seeded incidents:', err);
-      return [mockOrchestrationState.active_incident!];
-    }
+    return safeFetch<IncidentRecord[]>('/incidents', undefined, [mockOrchestrationState.active_incident!]);
   },
 
   verifyIncident: async (
@@ -203,7 +230,7 @@ export const api = {
     verified: boolean = true,
     notes: string = 'Verified by Command Center Operator via CCTV evidence snapshot.'
   ): Promise<IncidentRecord> => {
-    return await request<IncidentRecord>(`/incidents/${incidentId}/verify`, {
+    return safeFetch<IncidentRecord>(`/incidents/${incidentId}/verify`, {
       method: 'POST',
       body: JSON.stringify({
         verified,
@@ -214,7 +241,7 @@ export const api = {
   },
 
   dispatchIncident: async (incidentId: string): Promise<IncidentRecord> => {
-    return await request<IncidentRecord>(`/incidents/${incidentId}/dispatch`, {
+    return safeFetch<IncidentRecord>(`/incidents/${incidentId}/dispatch`, {
       method: 'POST',
     });
   },
@@ -223,7 +250,7 @@ export const api = {
     incidentId: string,
     notes: string = 'Scene cleared and incident resolved by Command Center.'
   ): Promise<IncidentRecord> => {
-    return await request<IncidentRecord>(`/incidents/${incidentId}/resolve`, {
+    return safeFetch<IncidentRecord>(`/incidents/${incidentId}/resolve`, {
       method: 'POST',
       body: JSON.stringify({
         operator_id: 'OP-CHIEF-01',
@@ -234,12 +261,7 @@ export const api = {
 
   // 4. Resources
   getEmergencyUnits: async (): Promise<EmergencyUnit[]> => {
-    try {
-      return await request<EmergencyUnit[]>('/resources');
-    } catch (err) {
-      console.warn('[UrbanFlow API] Fallback to seeded emergency fleet:', err);
-      return mockEmergencyUnits;
-    }
+    return safeFetch<EmergencyUnit[]>('/resources', undefined, mockEmergencyUnits);
   },
 
   // 5. Routing
@@ -249,7 +271,7 @@ export const api = {
     avoidRoads: string[] = [],
     algorithm: string = 'astar'
   ): Promise<any> => {
-    return await request('/routing/calculate', {
+    return safeFetch('/routing/calculate', {
       method: 'POST',
       body: JSON.stringify({
         origin_node: origin,
@@ -262,10 +284,10 @@ export const api = {
 
   // 6. Traffic Intelligence & ML Forecasting (Member 3)
   getRoadForecast: async (roadId: string): Promise<any> => {
-    return await request(`/traffic/forecast/${roadId}`);
+    return safeFetch(`/traffic/forecast/${roadId}`);
   },
 
   getTrafficOverview: async (): Promise<any> => {
-    return await request('/traffic/overview');
+    return safeFetch('/traffic/overview');
   },
 };

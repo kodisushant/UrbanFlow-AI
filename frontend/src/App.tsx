@@ -1,11 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { AlertTriangle, X } from 'lucide-react';
 import { Header } from './components/Header';
 import { CityMap } from './components/CityMap';
 import { CCTVPanel } from './components/CCTVPanel';
 import { IncidentPanel } from './components/IncidentPanel';
 import { ResourceList } from './components/ResourceList';
 import { AgentLogFeed } from './components/AgentLogFeed';
-import { api, ApiError } from './services/api';
+import {
+  api,
+  BackendStatus,
+  getBackendStatus,
+  onBackendStatusChange,
+  registerToastHandler,
+} from './services/api';
 import {
   CityGraph,
   EmergencyUnit,
@@ -19,7 +26,13 @@ import {
   mockOrchestrationState,
   standbyOrchestrationState,
 } from './services/mockData';
-import { AlertCircle, CheckCircle2, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
+
+interface ToastMessage {
+  id: string;
+  message: string;
+  type: 'error' | 'success' | 'info';
+}
 
 export const App: React.FC = () => {
   const [cityGraph, setCityGraph] = useState<CityGraph>(mockCityGraph);
@@ -27,7 +40,7 @@ export const App: React.FC = () => {
   const [emergencyUnits, setEmergencyUnits] = useState<EmergencyUnit[]>(mockEmergencyUnits);
   const [simulationTime, setSimulationTime] = useState<number>(0.0);
   const [isRunning, setIsRunning] = useState<boolean>(true);
-  const [isBackendOnline, setIsBackendOnline] = useState<boolean>(false);
+  const [backendStatus, setBackendStatus] = useState<BackendStatus>(getBackendStatus());
 
   // Operation loading states
   const [isOperating, setIsOperating] = useState<boolean>(false);
@@ -41,29 +54,46 @@ export const App: React.FC = () => {
     type: 'success' | 'error' | 'info';
     message: string;
   } | null>(null);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setNotification({ message, type });
   };
 
+  // Subscribe to backend connectivity status & toast alerts
+  useEffect(() => {
+    const unregisterStatus = onBackendStatusChange((status) => {
+      setBackendStatus(status);
+    });
+
+    const unregisterToast = registerToastHandler((message, type) => {
+      const id = Math.random().toString(36).substring(2, 9);
+      setToasts((prev) => [...prev, { id, message, type }]);
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, 5000);
+    });
+
+    return () => {
+      unregisterStatus();
+      unregisterToast();
+    };
+  }, []);
+
   // Fetch full state from backend
   const refreshAll = useCallback(async () => {
     try {
-      const health = await api.checkHealth();
-      setIsBackendOnline(health.online);
-
+      await api.checkHealth();
       const [graph, state, units] = await Promise.all([
         api.getCityGraph(),
         api.getOrchestrationState(),
         api.getEmergencyUnits(),
       ]);
-
       setCityGraph(graph);
       setOrchestration(state);
       setEmergencyUnits(units);
     } catch (err: any) {
       console.warn('Backend refresh error:', err);
-      setIsBackendOnline(false);
     }
   }, []);
 
@@ -75,7 +105,7 @@ export const App: React.FC = () => {
   // Periodic health check every 10s
   useEffect(() => {
     const timer = setInterval(() => {
-      api.checkHealth().then((h) => setIsBackendOnline(h.online));
+      api.checkHealth();
     }, 10000);
     return () => clearInterval(timer);
   }, []);
@@ -223,7 +253,7 @@ export const App: React.FC = () => {
     setIsOperating(true);
     try {
       const roadId = locationNode === 'INT-03' ? 'ROAD-03A' : 'ROAD-01A';
-      const inc = await api.detectCandidate(locationNode, roadId, candidateType, 0.85);
+      await api.detectCandidate(locationNode, roadId, candidateType, 0.85);
       showNotification(`Candidate ${candidateType} detected at ${locationNode}.`, 'info');
       await refreshAll();
     } catch (err: any) {
@@ -277,7 +307,7 @@ export const App: React.FC = () => {
         }
         dispatchedUnitsCount={dispatchedCount}
         activeCorridorsCount={corridorNodes.length > 0 ? 1 : 0}
-        isBackendOnline={isBackendOnline}
+        backendStatus={backendStatus}
         isOperating={isOperating}
       />
 
@@ -353,6 +383,36 @@ export const App: React.FC = () => {
           <AgentLogFeed logs={orchestration.agent_logs || []} />
         </div>
       </main>
+
+      {/* Action Error & Status Toast Notifications */}
+      <div className="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 max-w-md pointer-events-none">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`pointer-events-auto flex items-start space-x-2.5 p-3.5 rounded-lg shadow-2xl border text-xs font-sans transition-all duration-200 ${
+              toast.type === 'error'
+                ? 'bg-rose-950/95 border-rose-600/80 text-rose-200'
+                : toast.type === 'success'
+                ? 'bg-emerald-950/95 border-emerald-600/80 text-emerald-200'
+                : 'bg-slate-900/95 border-slate-700 text-slate-200'
+            }`}
+          >
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <div className="font-bold uppercase tracking-wider text-[10px] text-rose-400">
+                Action Error
+              </div>
+              <div className="mt-0.5 text-slate-200">{toast.message}</div>
+            </div>
+            <button
+              onClick={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
+              className="text-slate-400 hover:text-white p-0.5"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
