@@ -9,6 +9,9 @@ import {
   Tooltip,
 } from 'react-leaflet';
 import L from 'leaflet';
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 import {
   CityGraph,
   EmergencyUnit,
@@ -17,12 +20,12 @@ import {
 } from '../types';
 import { Layers, ShieldAlert, Navigation, Car, AlertTriangle } from 'lucide-react';
 
-// Fix Leaflet marker icons in React
+// Fix Leaflet marker icons in React using local bundled assets
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
 });
 
 // Custom Unit Icons
@@ -120,9 +123,10 @@ export const CityMap: React.FC<CityMapProps> = ({
       >
         {/* Dark Matter Base Tiles */}
         <TileLayer
-          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; OpenStreetMap contributors'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
           maxZoom={19}
+          className="dark-tiles"
         />
 
         {/* 1. Road Network Congestion Layer */}
@@ -200,8 +204,8 @@ export const CityMap: React.FC<CityMapProps> = ({
             const fillColor = isCorridor
               ? '#22c55e'
               : node.signal_state === 'caution_flashing'
-              ? '#f59e0b'
-              : '#10b981';
+                ? '#f59e0b'
+                : '#10b981';
 
             return (
               <CircleMarker

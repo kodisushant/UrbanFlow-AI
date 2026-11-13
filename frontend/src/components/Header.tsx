@@ -7,7 +7,9 @@ import {
   Flame,
   Truck,
   Zap,
+  AlertTriangle,
 } from 'lucide-react';
+import { BackendStatus } from '../services/api';
 
 interface HeaderProps {
   simulationTime: number;
@@ -17,6 +19,7 @@ interface HeaderProps {
   activeIncidentsCount: number;
   dispatchedUnitsCount: number;
   activeCorridorsCount: number;
+  backendStatus?: BackendStatus;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -27,6 +30,7 @@ export const Header: React.FC<HeaderProps> = ({
   activeIncidentsCount,
   dispatchedUnitsCount,
   activeCorridorsCount,
+  backendStatus = 'offline',
 }) => {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -35,29 +39,53 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="h-16 bg-[#0f172a] border-b border-slate-800 px-6 flex items-center justify-between z-20 shrink-0">
-      {/* Title & Branding */}
-      <div className="flex items-center space-x-3">
-        <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-          <Zap className="w-5 h-5 animate-pulse text-cyan-400" />
-        </div>
-        <div>
+    <>
+      {/* Offline Status Banner */}
+      {backendStatus === 'offline' && (
+        <div className="bg-amber-950/90 border-b border-amber-500/40 text-amber-200 px-6 py-1.5 text-xs font-medium flex items-center justify-between z-30 shrink-0">
           <div className="flex items-center space-x-2">
-            <h1 className="text-base font-bold tracking-wider text-slate-100 uppercase">
-              UrbanFlow AI
-            </h1>
-            <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/50">
-              Command Center
-            </span>
-            <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-950/80 text-amber-400 border border-amber-800/50">
-              Simulation Mode
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>
+              <strong>Backend Offline:</strong> Using fallback mock data. Run <code className="bg-black/50 px-1.5 py-0.5 rounded text-amber-300 font-mono">python backend/run.py</code> to connect the live API.
             </span>
           </div>
-          <p className="text-xs text-slate-400">
-            Adaptive Multi-Agent Traffic Intelligence & Emergency Corridor Dispatch
-          </p>
+          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-900/80 text-amber-300 border border-amber-700/60">
+            Offline — Using Mock Data
+          </span>
         </div>
-      </div>
+      )}
+
+      <header className="h-16 bg-[#0f172a] border-b border-slate-800 px-6 flex items-center justify-between z-20 shrink-0">
+        {/* Title & Branding */}
+        <div className="flex items-center space-x-3">
+          <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+            <Zap className="w-5 h-5 animate-pulse text-cyan-400" />
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <h1 className="text-base font-bold tracking-wider text-slate-100 uppercase">
+                UrbanFlow AI
+              </h1>
+              <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/50">
+                Command Center
+              </span>
+              {backendStatus === 'offline' ? (
+                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-700/50 flex items-center space-x-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                  <span>Offline — Using Mock Data</span>
+                </span>
+              ) : (
+                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-700/50 flex items-center space-x-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>Live Backend Connected</span>
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-400">
+              Adaptive Multi-Agent Traffic Intelligence & Emergency Corridor Dispatch
+            </p>
+          </div>
+        </div>
 
       {/* KPI Badges */}
       <div className="hidden lg:flex items-center space-x-4">
@@ -119,5 +147,6 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
       </div>
     </header>
-  );
+  </>
+);
 };

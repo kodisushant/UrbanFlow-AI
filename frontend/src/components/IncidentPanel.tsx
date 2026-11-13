@@ -27,7 +27,10 @@ export const IncidentPanel: React.FC<IncidentPanelProps> = ({
     );
   }
 
-  const isVerified = incident.status === 'verified' || incident.status === 'simulated_dispatch';
+  const isVerified =
+    incident.status === 'verified' ||
+    incident.status === 'response_recommended' ||
+    incident.status === 'simulated_dispatch';
   const isDispatched = incident.status === 'simulated_dispatch';
 
   return (
