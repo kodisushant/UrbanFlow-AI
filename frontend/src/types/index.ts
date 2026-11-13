@@ -156,3 +156,76 @@ export interface OrchestrationState {
   agent_log?: AgentLogEntry[];
   simulated: boolean;
 }
+
+
+// -----------------------------------------------------------------------------
+// Find Path & Route Comparison Types
+// -----------------------------------------------------------------------------
+
+export type AppMode = 'scenario' | 'find_path';
+
+export interface PathSegmentDetail {
+  road_id: string;
+  name: string;
+  from_node: string;
+  to_node: string;
+  length_meters: number;
+  speed_limit_kmph: number;
+  congestion_level: string;
+  congestion_multiplier: number;
+  is_blocked: boolean;
+  travel_time_seconds: number;
+}
+
+export interface FindPathResult {
+  mode: 'optimised' | 'baseline';
+  algorithm: string;
+  from_node: string;
+  to_node: string;
+  reachable: boolean;
+  total_distance_meters: number;
+  total_distance_km: number;
+  estimated_travel_time_seconds: number;
+  estimated_travel_time_minutes: number;
+  nodes_explored: number;
+  compute_ms: number;
+  node_ids: string[];
+  road_ids: string[];
+  coordinates: Coordinate[];
+  congested_segments_count: number;
+  blocked_roads_hit: number;
+  has_blocked_segments: boolean;
+  detour_penalty_seconds: number;
+  segments: PathSegmentDetail[];
+  summary: string;
+}
+
+export interface PathComparison {
+  time_saved_seconds: number;
+  time_saved_minutes: number;
+  time_saved_percent: number;
+  distance_difference_meters: number;
+  distance_difference_km: number;
+  congested_segments_avoided: number;
+  blocked_roads_avoided: number;
+  summary: string;
+}
+
+export interface ComparePathResult {
+  from_node: string;
+  to_node: string;
+  algorithm: string;
+  reachable: boolean;
+  optimised?: FindPathResult;
+  baseline?: FindPathResult;
+  comparison?: PathComparison;
+  error_message?: string;
+}
+
+export interface RandomizeTrafficResult {
+  status: string;
+  seed?: number;
+  blocked_roads: string[];
+  congested_roads_count: number;
+  total_roads: number;
+}

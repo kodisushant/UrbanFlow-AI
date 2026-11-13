@@ -233,18 +233,134 @@ def run_browser_verification():
         print(f"[14] Scene resolution confirmed: {final_status}")
         assert final_status["allCorridorsClear"], "Scene resolution not reflected in UI!"
 
-        # 15. Capture high-res screenshot
-        print("[15] Capturing full-screen browser screenshot...")
+        # ---------------------------------------------------------------------
+        # NEW VERIFICATION: FIND PATH MODE
+        # ---------------------------------------------------------------------
+        print("\n[15] Testing Mode Switch: Switching to 'Find Path' Mode...")
+        evaluate("""
+            (() => {
+                const btns = Array.from(document.querySelectorAll('button'));
+                const findPathBtn = btns.find(b => b.textContent && b.textContent.includes('Find Path'));
+                if (findPathBtn) findPathBtn.click();
+            })()
+        """)
+        time.sleep(1.5)
+
+        # 16. Verify Find Path controls and comparison panel are mounted
+        find_path_ui = evaluate("""
+            (() => {
+                const upper = (document.body.innerText || '').toUpperCase();
+                const hasControls = upper.includes('PATH OPTIMISATION') || upper.includes('ROUTE ENDPOINTS');
+                const hasComparison = upper.includes('ROUTE PERFORMANCE') || upper.includes('ROUTE COMPARISON');
+                const optBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Optimise Path'));
+                const baseBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Without Optim'));
+                const randBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Randomize Traffic'));
+                return {
+                    hasControls,
+                    hasComparison,
+                    hasOptBtn: !!optBtn,
+                    hasBaseBtn: !!baseBtn,
+                    hasRandBtn: !!randBtn
+                };
+            })()
+        """)
+        print(f"[16] Find Path UI layout verified: {find_path_ui}")
+        assert find_path_ui["hasControls"], "FindPathControls not rendered in left column!"
+        assert find_path_ui["hasComparison"], "PathComparisonPanel not rendered in right column!"
+        assert find_path_ui["hasOptBtn"], "'Optimise Path' button not found!"
+        assert find_path_ui["hasBaseBtn"], "'Without Optimisation' button not found!"
+        assert find_path_ui["hasRandBtn"], "'Randomize Traffic' button not found!"
+
+        # 17. Click 'Randomize Traffic' to stress test the grid
+        print("[17] Clicking 'Randomize Traffic' to inject congestion and closures...")
+        evaluate("""
+            (() => {
+                const randBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Randomize Traffic'));
+                if (randBtn) randBtn.click();
+            })()
+        """)
+        time.sleep(2.0)
+
+        # 18. Click 'Compare Both Side by Side'
+        print("[18] Clicking 'Compare Both Side by Side'...")
+        evaluate("""
+            (() => {
+                const compBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Compare Both'));
+                if (compBtn) compBtn.click();
+            })()
+        """)
+        time.sleep(2.5)
+
+        # 19. Verify comparison analytics rendered
+        comp_ui_status = evaluate("""
+            (() => {
+                const upper = (document.body.innerText || '').toUpperCase();
+                const hasSummary = upper.includes('OPTIMISED') && (upper.includes('FASTER') || upper.includes('IDENTICAL') || upper.includes('COMPARABLE'));
+                const hasOptimisedCard = upper.includes('OPTIMISED') || upper.includes('TRAVEL TIME');
+                const hasBaselineCard = upper.includes('BASELINE') || upper.includes('DISTANCE ONLY');
+                return {
+                    hasSummary,
+                    hasOptimisedCard,
+                    hasBaselineCard
+                };
+            })()
+        """)
+        print(f"[19] Route comparison analytics rendered: {comp_ui_status}")
+        assert comp_ui_status["hasOptimisedCard"], "Optimised route card not rendered in comparison panel!"
+        assert comp_ui_status["hasBaselineCard"], "Baseline route card not rendered in comparison panel!"
+
+        # 20. Switch back to Scenario Mode and ensure clean state
+        print("[20] Switching back to 'Run Scenario' Mode...")
+        evaluate("""
+            (() => {
+                const btns = Array.from(document.querySelectorAll('button'));
+                const scenarioBtn = btns.find(b => b.textContent && b.textContent.includes('Run Scenario'));
+                if (scenarioBtn) scenarioBtn.click();
+            })()
+        """)
+        time.sleep(1.5)
+
+        # 21. Click Reset to ensure clean baseline in both modes
+        print("[21] Resetting simulation...")
+        evaluate("""
+            (() => {
+                const btns = Array.from(document.querySelectorAll('button'));
+                const resetBtn = btns.find(b => b.textContent && b.textContent.trim().toUpperCase() === 'RESET');
+                if (resetBtn) resetBtn.click();
+            })()
+        """)
+        time.sleep(1.5)
+
+        # 22. Switch back to Find Path mode to capture verified screenshot
+        evaluate("""
+            (() => {
+                const btns = Array.from(document.querySelectorAll('button'));
+                const findPathBtn = btns.find(b => b.textContent && b.textContent.includes('Find Path'));
+                if (findPathBtn) findPathBtn.click();
+            })()
+        """)
+        time.sleep(1.0)
+        # Calculate routes for screenshot
+        evaluate("""
+            (() => {
+                const compBtn = Array.from(document.querySelectorAll('button')).find(b => b.textContent && b.textContent.includes('Compare Both'));
+                if (compBtn) compBtn.click();
+            })()
+        """)
+        time.sleep(2.0)
+
+        # 23. Capture screenshot of Find Path mode
+        print("[23] Capturing full-screen browser screenshot of Find Path mode...")
         screenshot_res = send_cdp("Page.captureScreenshot", {"format": "png"})
         if "data" in screenshot_res:
             os.makedirs("assets", exist_ok=True)
-            with open("assets/dashboard_verified.png", "wb") as f:
+            with open("assets/find_path_verified.png", "wb") as f:
                 f.write(base64.b64decode(screenshot_res["data"]))
-            print("    Saved browser verification screenshot to 'assets/dashboard_verified.png'")
+            print("    Saved browser verification screenshot to 'assets/find_path_verified.png'")
 
         ws.close()
         print("\n=======================================================")
-        print("ALL REAL BROWSER INTEGRATION TESTS PASSED SUCCESSFULLY!")
+        print("ALL REAL BROWSER INTEGRATION TESTS PASSED (BOTH MODES)!")
         print("=======================================================\n")
 
     finally:

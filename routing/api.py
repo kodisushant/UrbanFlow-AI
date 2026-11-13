@@ -105,6 +105,45 @@ try:
     def get_graph() -> Dict[str, Any]:
         return _service.get_graph_geojson()
 
+    @router.post("/find-path", summary="Find path in optimised or baseline mode")
+    def post_find_path_member4(req: Dict[str, Any]) -> Dict[str, Any]:
+        from app.services.city_graph_service import city_graph_service
+        from app.schemas.route import FindPathRequest
+        try:
+            parsed = FindPathRequest(**req)
+            return city_graph_service.find_path(
+                from_node=parsed.from_node,
+                to_node=parsed.to_node,
+                mode=parsed.mode,
+                algorithm=parsed.algorithm,
+            ).model_dump()
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    @router.post("/compare", summary="Compare optimised vs baseline paths")
+    def post_compare_member4(req: Dict[str, Any]) -> Dict[str, Any]:
+        from app.services.city_graph_service import city_graph_service
+        from app.schemas.route import ComparePathRequest
+        try:
+            parsed = ComparePathRequest(**req)
+            return city_graph_service.compare_paths(
+                from_node=parsed.from_node,
+                to_node=parsed.to_node,
+                algorithm=parsed.algorithm,
+            ).model_dump()
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    @router.post("/randomize-traffic", summary="Randomize road congestion and blocks")
+    def post_randomize_traffic_member4(req: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        from app.services.city_graph_service import city_graph_service
+        req_data = req or {}
+        return city_graph_service.randomize_traffic(
+            seed=req_data.get("seed"),
+            min_blocks=req_data.get("min_blocks", 2),
+            max_blocks=req_data.get("max_blocks", 4),
+        )
+
     HAS_FASTAPI = True
 
 except ImportError:

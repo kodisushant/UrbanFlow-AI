@@ -10,8 +10,10 @@ import {
   Zap,
   AlertTriangle,
   Radio,
+  Compass,
 } from 'lucide-react';
 import { BackendStatus } from '../services/api';
+import { AppMode } from '../types';
 
 interface HeaderProps {
   simulationTime: number;
@@ -26,6 +28,8 @@ interface HeaderProps {
   activeCorridorsCount: number;
   backendStatus?: BackendStatus;
   isOperating?: boolean;
+  mode?: AppMode;
+  onModeChange?: (mode: AppMode) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -41,6 +45,8 @@ export const Header: React.FC<HeaderProps> = ({
   activeCorridorsCount,
   backendStatus = 'offline',
   isOperating = false,
+  mode = 'scenario',
+  onModeChange,
 }) => {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -98,39 +104,79 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
             <p className="text-xs text-slate-400">
-              Multi-Agent Autonomous Traffic Intelligence &amp; Emergency Corridor Dispatch
+              Multi-Agent Autonomous Traffic Intelligence &amp; Route Optimization
             </p>
           </div>
         </div>
 
-        {/* KPI Badges */}
+        {/* Center: Mode Switch (Run Scenario vs Find Path) */}
+        <div className="flex items-center bg-slate-900 p-1 rounded-lg border border-slate-700/80 shadow-inner space-x-1">
+          <button
+            onClick={() => onModeChange?.('scenario')}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition ${
+              mode === 'scenario'
+                ? 'bg-cyan-600 text-white shadow-md shadow-cyan-950 border border-cyan-400/50'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+            title="Switch to Emergency Dispatch & Incident Triage Simulation"
+          >
+            <Play className="w-3.5 h-3.5 fill-current" />
+            <span>Run Scenario</span>
+          </button>
+          <button
+            onClick={() => onModeChange?.('find_path')}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition ${
+              mode === 'find_path'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950 border border-indigo-400/50'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+            title="Switch to Route Optimization: Compare congestion-aware A* vs static distance baseline"
+          >
+            <Compass className="w-3.5 h-3.5" />
+            <span>Find Path</span>
+          </button>
+        </div>
+
+        {/* KPI Badges (visible on large screens) */}
         <div className="hidden xl:flex items-center space-x-3">
-          {/* Incident Badge */}
-          <div className="flex items-center space-x-2 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800">
-            <ShieldAlert className="w-4 h-4 text-rose-400" />
-            <div className="text-left">
-              <div className="text-[10px] text-slate-400 uppercase font-medium">Active Incidents</div>
-              <div className="text-xs font-bold text-rose-400">{activeIncidentsCount} Detected</div>
-            </div>
-          </div>
+          {mode === 'scenario' ? (
+            <>
+              {/* Incident Badge */}
+              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800">
+                <ShieldAlert className="w-4 h-4 text-rose-400" />
+                <div className="text-left">
+                  <div className="text-[10px] text-slate-400 uppercase font-medium">Active Incidents</div>
+                  <div className="text-xs font-bold text-rose-400">{activeIncidentsCount} Detected</div>
+                </div>
+              </div>
 
-          {/* Units Dispatched */}
-          <div className="flex items-center space-x-2 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800">
-            <Truck className="w-4 h-4 text-cyan-400" />
-            <div className="text-left">
-              <div className="text-[10px] text-slate-400 uppercase font-medium">Units Dispatched</div>
-              <div className="text-xs font-bold text-cyan-400">{dispatchedUnitsCount} En Route</div>
-            </div>
-          </div>
+              {/* Units Dispatched */}
+              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800">
+                <Truck className="w-4 h-4 text-cyan-400" />
+                <div className="text-left">
+                  <div className="text-[10px] text-slate-400 uppercase font-medium">Units Dispatched</div>
+                  <div className="text-xs font-bold text-cyan-400">{dispatchedUnitsCount} En Route</div>
+                </div>
+              </div>
 
-          {/* Signal Preemption Corridors */}
-          <div className="flex items-center space-x-2 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800">
-            <Activity className="w-4 h-4 text-emerald-400" />
-            <div className="text-left">
-              <div className="text-[10px] text-slate-400 uppercase font-medium">Green Corridors</div>
-              <div className="text-xs font-bold text-emerald-400">{activeCorridorsCount} Active</div>
+              {/* Signal Preemption Corridors */}
+              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800">
+                <Activity className="w-4 h-4 text-emerald-400" />
+                <div className="text-left">
+                  <div className="text-[10px] text-slate-400 uppercase font-medium">Green Corridors</div>
+                  <div className="text-xs font-bold text-emerald-400">{activeCorridorsCount} Active</div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center space-x-2 px-3 py-1.5 rounded-md bg-slate-900 border border-indigo-900/50">
+              <Compass className="w-4 h-4 text-indigo-400" />
+              <div className="text-left">
+                <div className="text-[10px] text-indigo-300 uppercase font-medium">Pathfinding Lab</div>
+                <div className="text-xs font-bold text-slate-200">A* vs Baseline Distance</div>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Simulation Clock & Play/Pause */}
           <button
@@ -143,46 +189,50 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* Scenario Action Controls */}
+        {/* Action Controls */}
         <div className="flex items-center space-x-2.5">
-          {/* Step-by-Step Scenario */}
-          <button
-            onClick={onRunStepScenario}
-            disabled={isOperating}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-md font-semibold text-xs tracking-wider uppercase bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-800/60 transition shadow disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Detect incident and wait for human operator verification"
-          >
-            <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-            <span>Step Triage</span>
-          </button>
+          {mode === 'scenario' && (
+            <>
+              {/* Step-by-Step Scenario */}
+              <button
+                onClick={onRunStepScenario}
+                disabled={isOperating}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-md font-semibold text-xs tracking-wider uppercase bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-800/60 transition shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Detect incident and wait for human operator verification"
+              >
+                <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                <span>Step Triage</span>
+              </button>
 
-          {/* Full Auto Demo Scenario */}
-          <button
-            onClick={onRunFullScenario}
-            disabled={isOperating}
-            className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-md font-semibold text-xs tracking-wider uppercase transition shadow ${
-              isOperating
-                ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-950 border border-cyan-400/40'
-            }`}
-            title="Run complete 8-step pipeline from detection to diversion"
-          >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span>{isOperating ? 'Processing...' : 'Run Auto Demo'}</span>
-          </button>
+              {/* Full Auto Demo Scenario */}
+              <button
+                onClick={onRunFullScenario}
+                disabled={isOperating}
+                className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-md font-semibold text-xs tracking-wider uppercase transition shadow ${
+                  isOperating
+                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                    : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-950 border border-cyan-400/40'
+                }`}
+                title="Run complete 8-step pipeline from detection to diversion"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>{isOperating ? 'Processing...' : 'Run Auto Demo'}</span>
+              </button>
+            </>
+          )}
 
-          {/* Reset */}
+          {/* Reset (Works in BOTH modes) */}
           <button
             onClick={onReset}
             disabled={isOperating}
             className="flex items-center space-x-1 px-2.5 py-1.5 rounded-md font-semibold text-xs tracking-wider uppercase bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Reset Simulation to Baseline Standby"
+            title="Reset Simulation & Clear Pathfinding State"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset</span>
           </button>
 
-          {/* Refresh */}
+          {/* Refresh (Works in BOTH modes) */}
           <button
             onClick={onRefresh}
             disabled={isOperating}

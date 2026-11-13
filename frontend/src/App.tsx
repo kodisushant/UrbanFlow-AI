@@ -6,6 +6,8 @@ import { CCTVPanel } from './components/CCTVPanel';
 import { IncidentPanel } from './components/IncidentPanel';
 import { ResourceList } from './components/ResourceList';
 import { AgentLogFeed } from './components/AgentLogFeed';
+import { FindPathControls } from './components/FindPathControls';
+import { PathComparisonPanel } from './components/PathComparisonPanel';
 import {
   api,
   BackendStatus,
@@ -19,6 +21,9 @@ import {
   IncidentRecord,
   OrchestrationState,
   RouteResult,
+  AppMode,
+  FindPathResult,
+  PathComparison,
 } from './types';
 import {
   mockCityGraph,
@@ -35,6 +40,9 @@ interface ToastMessage {
 }
 
 export const App: React.FC = () => {
+  // App Mode: 'scenario' (Emergency response demo) or 'find_path' (Route optimization lab)
+  const [appMode, setAppMode] = useState<AppMode>('scenario');
+
   const [cityGraph, setCityGraph] = useState<CityGraph>(mockCityGraph);
   const [orchestration, setOrchestration] = useState<OrchestrationState>(standbyOrchestrationState);
   const [emergencyUnits, setEmergencyUnits] = useState<EmergencyUnit[]>(mockEmergencyUnits);
@@ -48,6 +56,20 @@ export const App: React.FC = () => {
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
   const [isDispatching, setIsDispatching] = useState<boolean>(false);
   const [isResolving, setIsResolving] = useState<boolean>(false);
+
+  // Find Path Mode state
+  const [fromNode, setFromNode] = useState<string | null>('INT-01');
+  const [toNode, setToNode] = useState<string | null>('INT-10');
+  const [selectionTarget, setSelectionTarget] = useState<'from' | 'to' | null>(null);
+  const [findPathAlgorithm, setFindPathAlgorithm] = useState<'astar' | 'dijkstra'>('astar');
+  const [optimisedResult, setOptimisedResult] = useState<FindPathResult | null>(null);
+  const [baselineResult, setBaselineResult] = useState<FindPathResult | null>(null);
+  const [comparison, setComparison] = useState<PathComparison | null>(null);
+  const [unreachableError, setUnreachableError] = useState<string | null>(null);
+  const [trafficStatusInfo, setTrafficStatusInfo] = useState<string | null>(null);
+  const [isCalculatingOptimised, setIsCalculatingOptimised] = useState<boolean>(false);
+  const [isCalculatingBaseline, setIsCalculatingBaseline] = useState<boolean>(false);
+  const [isRandomizingTraffic, setIsRandomizingTraffic] = useState<boolean>(false);
 
   // Toast notifications for user feedback
   const [notification, setNotification] = useState<{
@@ -121,7 +143,10 @@ export const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  // 1. One-click Hackathon Scenario Trigger (Full 8-Step Auto Demo)
+  // -------------------------------------------------------------------------
+  // Scenario Mode Handlers
+  // -------------------------------------------------------------------------
+
   const handleRunFullScenario = async () => {
     setIsOperating(true);
     try {
@@ -140,7 +165,6 @@ export const App: React.FC = () => {
     }
   };
 
-  // 2. Step-by-Step Scenario (Detection -> Operator Review -> Dispatch)
   const handleRunStepScenario = async () => {
     setIsOperating(true);
     try {
@@ -156,22 +180,6 @@ export const App: React.FC = () => {
     }
   };
 
-  // 3. Instant Reset Action
-  const handleReset = async () => {
-    setIsOperating(true);
-    setSimulationTime(0.0);
-    try {
-      await api.resetSimulation();
-      await refreshAll();
-      showNotification('System reset to baseline standby. All corridors and units restored.', 'success');
-    } catch (err: any) {
-      showNotification(`Reset failed: ${err.message}`, 'error');
-    } finally {
-      setIsOperating(false);
-    }
-  };
-
-  // 4. Operator Verification Action
   const handleVerify = async () => {
     if (!orchestration.active_incident) return;
     setIsVerifying(true);
@@ -190,7 +198,6 @@ export const App: React.FC = () => {
     }
   };
 
-  // 5. Operator Rejection Action (False Alarm / Safety Rule)
   const handleReject = async () => {
     if (!orchestration.active_incident) return;
     setIsRejecting(true);
@@ -209,7 +216,6 @@ export const App: React.FC = () => {
     }
   };
 
-  // 6. Dispatch Emergency Units Action
   const handleDispatch = async () => {
     if (!orchestration.active_incident) return;
     setIsDispatching(true);
@@ -227,7 +233,6 @@ export const App: React.FC = () => {
     }
   };
 
-  // 7. Resolve Incident Action
   const handleResolve = async () => {
     if (!orchestration.active_incident) return;
     setIsResolving(true);
@@ -245,7 +250,6 @@ export const App: React.FC = () => {
     }
   };
 
-  // 8. Simulate Incident Detection
   const handleSimulateDetection = async (
     locationNode: string = 'INT-03',
     candidateType: string = 'possible_collision'
@@ -263,14 +267,213 @@ export const App: React.FC = () => {
     }
   };
 
-  // 9. Interactive Road Closure Toggle
   const handleToggleRoadClosure = async (roadId: string, currentBlocked: boolean) => {
     try {
       await api.toggleRoadClosure(roadId, !currentBlocked);
       showNotification(`Road ${roadId} ${!currentBlocked ? 'closed' : 'reopened'}.`, 'info');
       await refreshAll();
+      // If in find path mode, re-fetch routes to reflect road closure change
+      if (appMode === 'find_path' && fromNode && toNode) {
+        if (optimisedResult || baselineResult) {
+          handleCompareBoth();
+        }
+      }
     } catch (err: any) {
       showNotification(`Failed to toggle closure: ${err.message}`, 'error');
+    }
+  };
+
+  // -------------------------------------------------------------------------
+  // Find Path Mode Handlers
+  // -------------------------------------------------------------------------
+
+  const handleSelectNode = (nodeId: string) => {
+    if (selectionTarget === 'from') {
+      setFromNode(nodeId);
+      setSelectionTarget('to');
+      setOptimisedResult(null);
+      setBaselineResult(null);
+      setComparison(null);
+      setUnreachableError(null);
+      showNotification(`Origin set to ${nodeId}. Now click destination node.`, 'info');
+    } else if (selectionTarget === 'to') {
+      setToNode(nodeId);
+      setSelectionTarget(null);
+      setOptimisedResult(null);
+      setBaselineResult(null);
+      setComparison(null);
+      setUnreachableError(null);
+      showNotification(`Destination set to ${nodeId}. Ready to calculate!`, 'info');
+    } else {
+      if (!fromNode) {
+        setFromNode(nodeId);
+        setSelectionTarget('to');
+        showNotification(`Origin set to ${nodeId}. Now select destination.`, 'info');
+      } else {
+        setToNode(nodeId);
+        setSelectionTarget(null);
+        showNotification(`Destination set to ${nodeId}.`, 'info');
+      }
+      setOptimisedResult(null);
+      setBaselineResult(null);
+      setComparison(null);
+      setUnreachableError(null);
+    }
+  };
+
+  const handleSwapNodes = () => {
+    const temp = fromNode;
+    setFromNode(toNode);
+    setToNode(temp);
+    setOptimisedResult(null);
+    setBaselineResult(null);
+    setComparison(null);
+    setUnreachableError(null);
+  };
+
+  const handleClearNodes = () => {
+    setFromNode(null);
+    setToNode(null);
+    setSelectionTarget('from');
+    setOptimisedResult(null);
+    setBaselineResult(null);
+    setComparison(null);
+    setUnreachableError(null);
+  };
+
+  const handleCalculateOptimised = async () => {
+    if (!fromNode || !toNode) return;
+    setIsCalculatingOptimised(true);
+    setUnreachableError(null);
+    try {
+      const res = await api.findPath(fromNode, toNode, 'optimised', findPathAlgorithm);
+      if (!res.reachable) {
+        setUnreachableError(res.summary);
+        showNotification(res.summary, 'error');
+        setOptimisedResult(null);
+      } else {
+        setOptimisedResult(res);
+        showNotification(
+          `Optimised route calculated: ${res.total_distance_km} km in ${res.estimated_travel_time_minutes} min`,
+          'success'
+        );
+        // If baseline already exists for this pair, recompute comparison
+        if (baselineResult && baselineResult.from_node === fromNode && baselineResult.to_node === toNode) {
+          const comp = await api.comparePaths(fromNode, toNode, findPathAlgorithm);
+          setComparison(comp.comparison || null);
+        }
+      }
+    } catch (err: any) {
+      showNotification(`Optimization error: ${err.message}`, 'error');
+    } finally {
+      setIsCalculatingOptimised(false);
+    }
+  };
+
+  const handleCalculateBaseline = async () => {
+    if (!fromNode || !toNode) return;
+    setIsCalculatingBaseline(true);
+    try {
+      const res = await api.findPath(fromNode, toNode, 'baseline', findPathAlgorithm);
+      setBaselineResult(res);
+      showNotification(
+        `Baseline route evaluated: ${res.total_distance_km} km in ${res.estimated_travel_time_minutes} min`,
+        'info'
+      );
+      // If optimised already exists for this pair, recompute comparison
+      if (optimisedResult && optimisedResult.from_node === fromNode && optimisedResult.to_node === toNode) {
+        const comp = await api.comparePaths(fromNode, toNode, findPathAlgorithm);
+        setComparison(comp.comparison || null);
+      }
+    } catch (err: any) {
+      showNotification(`Baseline calculation error: ${err.message}`, 'error');
+    } finally {
+      setIsCalculatingBaseline(false);
+    }
+  };
+
+  const handleCompareBoth = async () => {
+    if (!fromNode || !toNode) return;
+    setIsCalculatingOptimised(true);
+    setIsCalculatingBaseline(true);
+    setUnreachableError(null);
+    try {
+      const comp = await api.comparePaths(fromNode, toNode, findPathAlgorithm);
+      if (!comp.reachable) {
+        setUnreachableError(comp.error_message || 'Destination is unreachable due to road closures.');
+        showNotification(comp.error_message || 'Destination is unreachable due to road closures.', 'error');
+      } else {
+        setOptimisedResult(comp.optimised || null);
+        setBaselineResult(comp.baseline || null);
+        setComparison(comp.comparison || null);
+        showNotification(comp.comparison?.summary || 'Comparison complete!', 'success');
+      }
+    } catch (err: any) {
+      showNotification(`Comparison error: ${err.message}`, 'error');
+    } finally {
+      setIsCalculatingOptimised(false);
+      setIsCalculatingBaseline(false);
+    }
+  };
+
+  const handleRandomizeTraffic = async (seed?: number) => {
+    setIsRandomizingTraffic(true);
+    try {
+      const res = await api.randomizeTraffic(seed);
+      setTrafficStatusInfo(
+        `Seed ${res.seed ?? 'Random'}: ${res.blocked_roads.length} road(s) closed, ${res.congested_roads_count} congested segments`
+      );
+      showNotification(
+        `Traffic randomized: ${res.blocked_roads.length} road closures applied.`,
+        'info'
+      );
+      // Refresh map so edge colors and dashes immediately update
+      const graph = await api.getCityGraph();
+      setCityGraph(graph);
+
+      // Recompute active routes if already shown
+      if (fromNode && toNode && fromNode !== toNode) {
+        if (optimisedResult && baselineResult) {
+          const comp = await api.comparePaths(fromNode, toNode, findPathAlgorithm);
+          setOptimisedResult(comp.optimised || null);
+          setBaselineResult(comp.baseline || null);
+          setComparison(comp.comparison || null);
+        } else if (optimisedResult) {
+          const opt = await api.findPath(fromNode, toNode, 'optimised', findPathAlgorithm);
+          setOptimisedResult(opt);
+        } else if (baselineResult) {
+          const base = await api.findPath(fromNode, toNode, 'baseline', findPathAlgorithm);
+          setBaselineResult(base);
+        }
+      }
+    } catch (err: any) {
+      showNotification(`Failed to randomize traffic: ${err.message}`, 'error');
+    } finally {
+      setIsRandomizingTraffic(false);
+    }
+  };
+
+  // Reset (works in BOTH modes)
+  const handleReset = async () => {
+    setIsOperating(true);
+    setSimulationTime(0.0);
+    try {
+      await api.resetSimulation();
+      await refreshAll();
+      // Clear find path state
+      setOptimisedResult(null);
+      setBaselineResult(null);
+      setComparison(null);
+      setUnreachableError(null);
+      setTrafficStatusInfo(null);
+      showNotification(
+        'System reset to baseline standby. All corridors, units, and roadblocks restored.',
+        'success'
+      );
+    } catch (err: any) {
+      showNotification(`Reset failed: ${err.message}`, 'error');
+    } finally {
+      setIsOperating(false);
     }
   };
 
@@ -309,6 +512,16 @@ export const App: React.FC = () => {
         activeCorridorsCount={corridorNodes.length > 0 ? 1 : 0}
         backendStatus={backendStatus}
         isOperating={isOperating}
+        mode={appMode}
+        onModeChange={(newMode) => {
+          setAppMode(newMode);
+          showNotification(
+            newMode === 'find_path'
+              ? 'Switched to Find Path Mode: Route Optimization Lab.'
+              : 'Switched to Run Scenario Mode: Emergency Response & Triage.',
+            'info'
+          );
+        }}
       />
 
       {/* Floating Notification Toast */}
@@ -339,49 +552,127 @@ export const App: React.FC = () => {
 
       {/* Main Command Center Grid */}
       <main className="flex-1 grid grid-cols-12 gap-3 p-3 overflow-hidden">
-        {/* Left Sidebar: Vision & Incident Triage (3 Cols) */}
-        <div className="col-span-3 flex flex-col space-y-3 overflow-y-auto pr-0.5">
-          <CCTVPanel
-            cameraId={orchestration.active_incident?.source || 'cctv_camera_01'}
-            hasCandidateAlert={
-              !!orchestration.active_incident &&
-              orchestration.active_incident.status !== 'resolved'
-            }
-            onAnalyzeFeed={(camId) => handleSimulateDetection(camId === 'cctv_camera_01' ? 'INT-03' : 'INT-01')}
-          />
-          <IncidentPanel
-            incident={orchestration.active_incident}
-            onVerify={handleVerify}
-            onReject={handleReject}
-            onDispatch={handleDispatch}
-            onResolve={handleResolve}
-            onSimulateDetection={handleSimulateDetection}
-            isVerifying={isVerifying}
-            isRejecting={isRejecting}
-            isDispatching={isDispatching}
-            isResolving={isResolving}
-          />
-        </div>
+        {appMode === 'scenario' ? (
+          <>
+            {/* Left Sidebar: Vision & Incident Triage (3 Cols) */}
+            <div className="col-span-3 flex flex-col space-y-3 overflow-y-auto pr-0.5">
+              <CCTVPanel
+                cameraId={orchestration.active_incident?.source || 'cctv_camera_01'}
+                hasCandidateAlert={
+                  !!orchestration.active_incident &&
+                  orchestration.active_incident.status !== 'resolved'
+                }
+                onAnalyzeFeed={(camId) =>
+                  handleSimulateDetection(camId === 'cctv_camera_01' ? 'INT-03' : 'INT-01')
+                }
+              />
+              <IncidentPanel
+                incident={orchestration.active_incident}
+                onVerify={handleVerify}
+                onReject={handleReject}
+                onDispatch={handleDispatch}
+                onResolve={handleResolve}
+                onSimulateDetection={handleSimulateDetection}
+                isVerifying={isVerifying}
+                isRejecting={isRejecting}
+                isDispatching={isDispatching}
+                isResolving={isResolving}
+              />
+            </div>
 
-        {/* Center: Leaflet Interactive Command Center Map (6 Cols) */}
-        <div className="col-span-6 rounded-lg overflow-hidden border border-slate-800 shadow-2xl relative min-h-[480px]">
-          <CityMap
-            cityGraph={cityGraph}
-            activeIncident={orchestration.active_incident}
-            emergencyUnits={emergencyUnits}
-            emergencyRoute={primaryEmergencyRoute}
-            diversionRoute={diversionRoute}
-            activeCorridorNodes={corridorNodes}
-            onToggleRoadClosure={handleToggleRoadClosure}
-            onSimulateAtNode={(nodeId) => handleSimulateDetection(nodeId)}
-          />
-        </div>
+            {/* Center: Leaflet Interactive Command Center Map (6 Cols) */}
+            <div className="col-span-6 rounded-lg overflow-hidden border border-slate-800 shadow-2xl relative min-h-[480px]">
+              <CityMap
+                appMode="scenario"
+                cityGraph={cityGraph}
+                activeIncident={orchestration.active_incident}
+                emergencyUnits={emergencyUnits}
+                emergencyRoute={primaryEmergencyRoute}
+                diversionRoute={diversionRoute}
+                activeCorridorNodes={corridorNodes}
+                onToggleRoadClosure={handleToggleRoadClosure}
+                onSimulateAtNode={(nodeId) => handleSimulateDetection(nodeId)}
+              />
+            </div>
 
-        {/* Right Sidebar: Fleet Ops & Multi-Agent Intelligence (3 Cols) */}
-        <div className="col-span-3 flex flex-col space-y-3 overflow-y-auto pl-0.5">
-          <ResourceList units={emergencyUnits} />
-          <AgentLogFeed logs={orchestration.agent_logs || []} />
-        </div>
+            {/* Right Sidebar: Fleet Ops & Multi-Agent Intelligence (3 Cols) */}
+            <div className="col-span-3 flex flex-col space-y-3 overflow-y-auto pl-0.5">
+              <ResourceList units={emergencyUnits} />
+              <AgentLogFeed logs={orchestration.agent_logs || []} />
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Left Column: Find Path Controls (3 Cols) */}
+            <div className="col-span-3 flex flex-col space-y-3 overflow-y-auto pr-0.5">
+              <FindPathControls
+                nodes={cityGraph.nodes}
+                fromNode={fromNode}
+                toNode={toNode}
+                selectionTarget={selectionTarget}
+                onSetSelectionTarget={setSelectionTarget}
+                onSelectFromNode={(nid) => {
+                  setFromNode(nid);
+                  setOptimisedResult(null);
+                  setBaselineResult(null);
+                  setComparison(null);
+                  setUnreachableError(null);
+                }}
+                onSelectToNode={(nid) => {
+                  setToNode(nid);
+                  setOptimisedResult(null);
+                  setBaselineResult(null);
+                  setComparison(null);
+                  setUnreachableError(null);
+                }}
+                onSwapNodes={handleSwapNodes}
+                onClearNodes={handleClearNodes}
+                algorithm={findPathAlgorithm}
+                onAlgorithmChange={setFindPathAlgorithm}
+                onCalculateOptimised={handleCalculateOptimised}
+                onCalculateBaseline={handleCalculateBaseline}
+                onCompareBoth={handleCompareBoth}
+                isCalculatingOptimised={isCalculatingOptimised}
+                isCalculatingBaseline={isCalculatingBaseline}
+                unreachableError={unreachableError}
+                onRandomizeTraffic={handleRandomizeTraffic}
+                isRandomizingTraffic={isRandomizingTraffic}
+                trafficStatusInfo={trafficStatusInfo}
+              />
+            </div>
+
+            {/* Center Column: Interactive Map in Find Path Mode (6 Cols) */}
+            <div className="col-span-6 rounded-lg overflow-hidden border border-slate-800 shadow-2xl relative min-h-[480px]">
+              <CityMap
+                appMode="find_path"
+                cityGraph={cityGraph}
+                activeIncident={null}
+                emergencyUnits={emergencyUnits}
+                emergencyRoute={null}
+                diversionRoute={null}
+                activeCorridorNodes={[]}
+                fromNode={fromNode}
+                toNode={toNode}
+                selectionTarget={selectionTarget}
+                onSelectNode={handleSelectNode}
+                findPathOptimisedRoute={optimisedResult}
+                findPathBaselineRoute={baselineResult}
+                onToggleRoadClosure={handleToggleRoadClosure}
+              />
+            </div>
+
+            {/* Right Column: Path Comparison & Performance Analytics (3 Cols) */}
+            <div className="col-span-3 flex flex-col space-y-3 overflow-y-auto pl-0.5">
+              <PathComparisonPanel
+                optimisedResult={optimisedResult}
+                baselineResult={baselineResult}
+                comparison={comparison}
+                fromNode={fromNode}
+                toNode={toNode}
+              />
+            </div>
+          </>
+        )}
       </main>
 
       {/* Action Error & Status Toast Notifications */}

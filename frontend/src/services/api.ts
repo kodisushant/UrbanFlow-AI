@@ -3,6 +3,9 @@ import {
   EmergencyUnit,
   IncidentRecord,
   OrchestrationState,
+  FindPathResult,
+  ComparePathResult,
+  RandomizeTrafficResult,
 } from '../types';
 import {
   mockCityGraph,
@@ -289,5 +292,53 @@ export const api = {
 
   getTrafficOverview: async (): Promise<any> => {
     return safeFetch('/traffic/overview');
+  },
+
+  // 7. Route Optimization & Comparison (Find Path Mode)
+  findPath: async (
+    fromNode: string,
+    toNode: string,
+    mode: 'optimised' | 'baseline' = 'optimised',
+    algorithm: 'astar' | 'dijkstra' = 'astar'
+  ): Promise<FindPathResult> => {
+    return safeFetch<FindPathResult>('/routing/find-path', {
+      method: 'POST',
+      body: JSON.stringify({
+        from_node: fromNode,
+        to_node: toNode,
+        mode,
+        algorithm,
+      }),
+    });
+  },
+
+  comparePaths: async (
+    fromNode: string,
+    toNode: string,
+    algorithm: 'astar' | 'dijkstra' = 'astar'
+  ): Promise<ComparePathResult> => {
+    return safeFetch<ComparePathResult>('/routing/compare', {
+      method: 'POST',
+      body: JSON.stringify({
+        from_node: fromNode,
+        to_node: toNode,
+        algorithm,
+      }),
+    });
+  },
+
+  randomizeTraffic: async (
+    seed?: number,
+    minBlocks: number = 2,
+    maxBlocks: number = 4
+  ): Promise<RandomizeTrafficResult> => {
+    return safeFetch<RandomizeTrafficResult>('/routing/randomize-traffic', {
+      method: 'POST',
+      body: JSON.stringify({
+        seed,
+        min_blocks: minBlocks,
+        max_blocks: maxBlocks,
+      }),
+    });
   },
 };

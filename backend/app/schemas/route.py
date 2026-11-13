@@ -88,3 +88,92 @@ class RouteResult(BaseModel):
         return self
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# -----------------------------------------------------------------------------
+# Find Path & Route Comparison Schemas
+# -----------------------------------------------------------------------------
+
+class PathSegmentDetail(BaseModel):
+    road_id: str
+    name: str
+    from_node: str
+    to_node: str
+    length_meters: float
+    speed_limit_kmph: float
+    congestion_level: str
+    congestion_multiplier: float
+    is_blocked: bool
+    travel_time_seconds: float
+
+
+class FindPathRequest(BaseModel):
+    from_node: str = Field(..., description="Starting intersection node ID (e.g. INT-01)")
+    to_node: str = Field(..., description="Destination intersection node ID (e.g. INT-10)")
+    mode: str = Field(default="optimised", description="'optimised' or 'baseline'")
+    algorithm: str = Field(default="astar", description="'astar' or 'dijkstra'")
+
+
+class FindPathResult(BaseModel):
+    mode: str  # "optimised" | "baseline"
+    algorithm: str  # "astar" | "dijkstra" | "shortest_distance"
+    from_node: str
+    to_node: str
+    reachable: bool = True
+    total_distance_meters: float = 0.0
+    total_distance_km: float = 0.0
+    estimated_travel_time_seconds: float = 0.0
+    estimated_travel_time_minutes: float = 0.0
+    nodes_explored: int = 0
+    compute_ms: float = 0.0
+    node_ids: List[str] = Field(default_factory=list)
+    road_ids: List[str] = Field(default_factory=list)
+    coordinates: List[Dict[str, float]] = Field(default_factory=list)
+    congested_segments_count: int = 0
+    blocked_roads_hit: int = 0
+    has_blocked_segments: bool = False
+    detour_penalty_seconds: float = 0.0
+    segments: List[PathSegmentDetail] = Field(default_factory=list)
+    summary: str = ""
+
+
+class PathComparison(BaseModel):
+    time_saved_seconds: float = 0.0
+    time_saved_minutes: float = 0.0
+    time_saved_percent: float = 0.0
+    distance_difference_meters: float = 0.0
+    distance_difference_km: float = 0.0
+    congested_segments_avoided: int = 0
+    blocked_roads_avoided: int = 0
+    summary: str = ""
+
+
+class ComparePathRequest(BaseModel):
+    from_node: str = Field(..., description="Starting intersection node ID (e.g. INT-01)")
+    to_node: str = Field(..., description="Destination intersection node ID (e.g. INT-10)")
+    algorithm: str = Field(default="astar", description="'astar' or 'dijkstra'")
+
+
+class ComparePathResult(BaseModel):
+    from_node: str
+    to_node: str
+    algorithm: str
+    reachable: bool = True
+    optimised: Optional[FindPathResult] = None
+    baseline: Optional[FindPathResult] = None
+    comparison: Optional[PathComparison] = None
+    error_message: Optional[str] = None
+
+
+class RandomizeTrafficRequest(BaseModel):
+    seed: Optional[int] = None
+    min_blocks: int = 2
+    max_blocks: int = 4
+
+
+class RandomizeTrafficResult(BaseModel):
+    status: str = "success"
+    seed: Optional[int] = None
+    blocked_roads: List[str] = Field(default_factory=list)
+    congested_roads_count: int = 0
+    total_roads: int = 0

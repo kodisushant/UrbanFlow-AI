@@ -1,7 +1,18 @@
-import uuid
-from typing import List
+﻿import uuid
+from typing import List, Dict, Any
 from fastapi import APIRouter, HTTPException, status
-from app.schemas.route import RouteRequest, RouteResult, RouteStatus, SimulationStatus
+from app.schemas.route import (
+    RouteRequest,
+    RouteResult,
+    RouteStatus,
+    SimulationStatus,
+    FindPathRequest,
+    FindPathResult,
+    ComparePathRequest,
+    ComparePathResult,
+    RandomizeTrafficRequest,
+    RandomizeTrafficResult,
+)
 from app.services.city_graph_service import city_graph_service
 from app.services.resource_service import resource_service
 from app.agents.coordinator import workflow_coordinator
@@ -92,3 +103,59 @@ async def calculate_route(req: RouteRequest) -> RouteResult:
 async def list_active_routes() -> List[RouteResult]:
     """Retrieve all active emergency routes currently in progress."""
     return workflow_coordinator.get_state().active_routes
+
+
+# -----------------------------------------------------------------------------
+# Find Path Mode & Route Comparison Endpoints
+# -----------------------------------------------------------------------------
+
+@router.post("/find-path", response_model=FindPathResult)
+async def post_find_path(req: FindPathRequest) -> FindPathResult:
+    """
+    Computes a single route in either 'optimised' or 'baseline' mode.
+    - 'optimised': A* or Dijkstra with congestion weights, avoiding closed roads.
+    - 'baseline': Shortest distance only, then evaluated under real conditions (with detour penalties if blocked).
+    """
+    try:
+        return city_graph_service.find_path(
+            from_node=req.from_node,
+            to_node=req.to_node,
+            mode=req.mode,
+            algorithm=req.algorithm,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "INVALID_NODE", "message": str(e)}
+        )
+
+
+@router.post("/compare", response_model=ComparePathResult)
+async def post_compare_paths(req: ComparePathRequest) -> ComparePathResult:
+    """
+    Calculates both Optimised and Baseline routes side-by-side, returning metrics and time savings.
+    """
+    try:
+        return city_graph_service.compare_paths(
+            from_node=req.from_node,
+            to_node=req.to_node,
+            algorithm=req.algorithm,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "INVALID_NODE", "message": str(e)}
+        )
+
+
+@router.post("/randomize-traffic", response_model=RandomizeTrafficResult)
+async def post_randomize_traffic(req: RandomizeTrafficRequest) -> RandomizeTrafficResult:
+    """
+    Randomizes congestion levels across all roads and blocks 2-4 roads.
+    """
+    res = city_graph_service.randomize_traffic(
+        seed=req.seed,
+        min_blocks=req.min_blocks,
+        max_blocks=req.max_blocks,
+    )
+    return RandomizeTrafficResult(**res)
