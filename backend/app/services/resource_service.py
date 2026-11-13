@@ -5,7 +5,8 @@ from app.services.city_graph_service import city_graph_service
 
 class ResourceService:
     """
-    Emergency response resource registry and deterministic unit allocator.
+    Emergency response resource registry and deterministic unit allocator
+    synchronized with Member 4's Cyber City fleet.
     """
 
     def __init__(self):
@@ -14,99 +15,116 @@ class ResourceService:
 
     def initialize_default_units(self):
         self.units.clear()
-        
-        # Helper to get lat/lon for node
+
         def get_pos(node_id: str):
             node = city_graph_service.get_node(node_id)
             if node:
                 return node.latitude, node.longitude
-            return 17.3850, 78.4867
+            return 17.4420, 78.3800
 
-        p1 = get_pos("NODE-02")  # Hospital Junction
-        p2 = get_pos("NODE-10")  # East Terminal
-        p3 = get_pos("NODE-08")  # Civic Center
-        p4 = get_pos("NODE-01")  # North Gate
-        p5 = get_pos("NODE-14")  # Industrial Belt
+        p_amb1 = get_pos("INT-04")
+        p_amb2 = get_pos("INT-13")
+        p_fire = get_pos("INT-07")
+        p_pol1 = get_pos("INT-05")
+        p_pol2 = get_pos("INT-11")
 
         default_fleet = [
             EmergencyUnit(
                 unit_id="AMB-01",
-                name="RescueMedic 1",
-                unit_type=ResourceType.AMBULANCE,
-                status=ResourceStatus.AVAILABLE,
-                station_node="NODE-02",
-                current_node="NODE-02",
-                latitude=p1[0],
-                longitude=p1[1],
-                capabilities=["advanced_cardiac_life_support", "paramedic_triage"],
+                name="Medic One ALS",
+                call_sign="Medic One ALS",
+                unit_type="ambulance",
+                status="available",
+                station_node="INT-04",
+                current_node="INT-04",
+                latitude=p_amb1[0],
+                longitude=p_amb1[1],
+                capabilities=["advanced_life_support", "paramedic_crew", "ventilator", "defibrillator"],
                 speed_kmph=55.0
             ),
             EmergencyUnit(
                 unit_id="AMB-02",
-                name="RapidResponse 2",
-                unit_type=ResourceType.AMBULANCE,
-                status=ResourceStatus.AVAILABLE,
-                station_node="NODE-10",
-                current_node="NODE-10",
-                latitude=p2[0],
-                longitude=p2[1],
-                capabilities=["basic_life_support", "trauma_stabilization"],
+                name="South Apex Medic",
+                call_sign="South Apex Medic",
+                unit_type="ambulance",
+                status="available",
+                station_node="INT-13",
+                current_node="INT-13",
+                latitude=p_amb2[0],
+                longitude=p_amb2[1],
+                capabilities=["basic_life_support", "emergency_transport"],
                 speed_kmph=50.0
             ),
             EmergencyUnit(
                 unit_id="FIRE-01",
-                name="Engine 7",
-                unit_type=ResourceType.FIRE_TRUCK,
-                status=ResourceStatus.AVAILABLE,
-                station_node="NODE-08",
-                current_node="NODE-08",
-                latitude=p3[0],
-                longitude=p3[1],
-                capabilities=["vehicle_extrication", "chemical_hazard_control", "foam_suppression"],
+                name="Tower Rescue 7",
+                call_sign="Tower Rescue 7",
+                unit_type="fire_engine",
+                status="available",
+                station_node="INT-07",
+                current_node="INT-07",
+                latitude=p_fire[0],
+                longitude=p_fire[1],
+                capabilities=["water_tender", "hydraulic_rescue_cutters", "ladder", "hazmat_containment"],
                 speed_kmph=45.0
             ),
             EmergencyUnit(
                 unit_id="POLICE-01",
-                name="Patrol Alpha",
-                unit_type=ResourceType.POLICE_CRUISER,
-                status=ResourceStatus.AVAILABLE,
-                station_node="NODE-01",
-                current_node="NODE-01",
-                latitude=p4[0],
-                longitude=p4[1],
-                capabilities=["traffic_containment", "perimeter_lockdown"],
+                name="Highway Patrol Alpha",
+                call_sign="Patrol Alpha",
+                unit_type="police_patrol",
+                status="available",
+                station_node="INT-05",
+                current_node="INT-05",
+                latitude=p_pol1[0],
+                longitude=p_pol1[1],
+                capabilities=["traffic_control", "perimeter_security", "incident_investigation"],
                 speed_kmph=60.0
             ),
             EmergencyUnit(
                 unit_id="POLICE-02",
-                name="Highway Interceptor 4",
-                unit_type=ResourceType.POLICE_CRUISER,
-                status=ResourceStatus.AVAILABLE,
-                station_node="NODE-14",
-                current_node="NODE-14",
-                latitude=p5[0],
-                longitude=p5[1],
-                capabilities=["express_escort", "accident_investigation"],
+                name="East Patrol Delta",
+                call_sign="East Patrol Delta",
+                unit_type="police_patrol",
+                status="available",
+                station_node="INT-11",
+                current_node="INT-11",
+                latitude=p_pol2[0],
+                longitude=p_pol2[1],
+                capabilities=["rapid_response", "crowd_diversion", "motorcycle_escort"],
                 speed_kmph=65.0
             )
         ]
 
         for u in default_fleet:
             self.units[u.unit_id] = u
+        # Register alias POL-01 -> POLICE-01
+        self.units["POL-01"] = self.units["POLICE-01"]
 
     def get_all_units(self) -> List[EmergencyUnit]:
-        return list(self.units.values())
+        # Return unique units by unit_id
+        seen = set()
+        result = []
+        for u in self.units.values():
+            if u.unit_id not in seen:
+                seen.add(u.unit_id)
+                result.append(u)
+        return result
 
     def get_unit(self, unit_id: str) -> Optional[EmergencyUnit]:
-        return self.units.get(unit_id)
+        if unit_id in self.units:
+            return self.units[unit_id]
+        if unit_id == "POL-01":
+            return self.units.get("POLICE-01")
+        return None
 
     def update_unit_status(
         self,
         unit_id: str,
-        status: ResourceStatus,
+        status: str,
         incident_id: Optional[str] = None
     ) -> Optional[EmergencyUnit]:
-        unit = self.units.get(unit_id)
+        unit = self.get_unit(unit_id)
         if unit:
             unit.status = status
             if incident_id is not None:
@@ -116,21 +134,28 @@ class ResourceService:
     def find_best_unit(
         self,
         target_node: str,
-        required_type: ResourceType,
+        required_type: str,
         avoid_road_ids: Optional[set] = None
     ) -> Optional[EmergencyUnit]:
         """
-        Deterministic unit matching: Finds the closest available unit of required_type
+        Deterministic unit matching: Finds closest available unit of required_type
         by calculating shortest travel time using city_graph_service.
         """
+        req_norm = required_type.lower()
+        if "fire" in req_norm:
+            type_match = ["fire_engine", "fire_truck"]
+        elif "police" in req_norm or "patrol" in req_norm:
+            type_match = ["police_patrol", "police_cruiser", "police"]
+        else:
+            type_match = ["ambulance"]
+
         available_candidates = [
-            u for u in self.units.values()
-            if u.unit_type == required_type and u.status == ResourceStatus.AVAILABLE
+            u for u in self.get_all_units()
+            if any(t in u.unit_type.lower() for t in type_match) and u.status in ["available", "stationed"]
         ]
 
         if not available_candidates:
-            # Fallback to any available unit if none of strict type
-            available_candidates = [u for u in self.units.values() if u.status == ResourceStatus.AVAILABLE]
+            available_candidates = [u for u in self.get_all_units() if u.status in ["available", "stationed"]]
 
         if not available_candidates:
             return None
@@ -154,4 +179,3 @@ class ResourceService:
 
 
 resource_service = ResourceService()
-

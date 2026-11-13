@@ -20,7 +20,8 @@ async def ingest_detection(payload: IncidentDetectionPayload) -> IncidentRecord:
     return workflow_coordinator.handle_detection(payload)
 
 
-@router.get("/", response_model=List[IncidentRecord])
+@router.get("", response_model=List[IncidentRecord])
+@router.get("/", response_model=List[IncidentRecord], include_in_schema=False)
 async def list_incidents() -> List[IncidentRecord]:
     """Retrieve all logged incident records."""
     return incident_service.get_all()

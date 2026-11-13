@@ -16,7 +16,7 @@ try:
         destination_node: str = Field(..., description="Target intersection node ID (e.g. 'INT-01')")
         algorithm: str = Field("astar", description="Routing algorithm: 'astar' or 'dijkstra'")
         num_alternatives: int = Field(2, ge=0, le=5, description="Number of alternative routes to compute")
-        is_emergency: bool = Field(false, description="Enable emergency sirens and green corridor discounts")
+        is_emergency: bool = Field(False, description="Enable emergency sirens and green corridor discounts")
         unit_id: Optional[str] = Field(None, description="Optional dispatched emergency unit ID")
         incident_id: Optional[str] = Field(None, description="Optional associated incident ID")
         excluded_roads: Optional[List[str]] = Field(None, description="List of road IDs to exclude")

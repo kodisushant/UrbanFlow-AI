@@ -1,9 +1,23 @@
+import os
+import sys
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+# Ensure repository root is on sys.path for cross-module routing and vision imports
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 from app.core.config import settings
 from app.api.v1.api_router import api_router
 from app.agents.coordinator import workflow_coordinator
+
+try:
+    from routing.api import router as member4_routing_router
+except ImportError:
+    member4_routing_router = None
 
 
 @asynccontextmanager
@@ -38,6 +52,16 @@ app.add_middleware(
 # Mount API v1 router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
+# Mount Member 4 routing router if available (supports both /routing and /api/v1/routing)
+if member4_routing_router:
+    app.include_router(member4_routing_router)
+
+# Mount static assets directory (CCTV evidence, configs, sample feeds)
+assets_path = os.path.join(ROOT_DIR, "assets")
+if os.path.isdir(assets_path):
+    app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
+    app.mount("/static", StaticFiles(directory=assets_path), name="static")
+
 
 @app.get("/healthz", tags=["System Health"])
 async def health_check():
@@ -56,4 +80,5 @@ async def root():
         "documentation": "/docs",
         "health": "/healthz"
     }
+
 

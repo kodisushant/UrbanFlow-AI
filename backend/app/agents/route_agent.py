@@ -10,7 +10,8 @@ class RouteOptimizationAgent:
     """
     Route Optimization Agent.
     Interfaces with the deterministic graph engine, calculates primary and alternative routes,
-    designates signal priority corridors, and formats explainable routing decisions.
+    designates signal priority corridors, populates geographic coordinates for Leaflet map rendering,
+    and formats explainable routing decisions.
     """
 
     def plan_emergency_route(
@@ -65,8 +66,15 @@ class RouteOptimizationAgent:
         for d_road in diverted_roads:
             city_graph_service.set_road_diverted(d_road, True)
 
-        # 5. Formulate human-readable explanation
-        eta_min = round(primary_path.estimated_travel_time_seconds / 60, 1)
+        # 5. Extract coordinate list for frontend Leaflet polyline rendering
+        coords = []
+        for nid in primary_path.node_sequence:
+            node = city_graph_service.get_node(nid)
+            if node:
+                coords.append({"latitude": node.latitude, "longitude": node.longitude})
+
+        # 6. Formulate human-readable explanation
+        eta_min = round(primary_path.estimated_travel_time_seconds / 60.0, 1)
         savings_text = ""
         if alternative_path:
             diff = alternative_path.estimated_travel_time_seconds - primary_path.estimated_travel_time_seconds
@@ -80,22 +88,29 @@ class RouteOptimizationAgent:
             f"General traffic diverted away from {len(diverted_roads)} blocked/critical road segments: {', '.join(diverted_roads)}."
         )
 
-        route_id = f"ROUTE-{uuid.uuid4().hex[:6].upper()}"
+        route_id = f"ROUTE-EMERGENCY-{uuid.uuid4().hex[:4].upper()}"
 
         return RouteResult(
             route_id=route_id,
+            origin_node=origin,
+            destination_node=destination,
+            algorithm=algorithm,
             unit_id=unit.unit_id,
             incident_id=incident.incident_id,
+            road_ids=primary_path.road_ids,
+            node_ids=primary_path.node_sequence,
+            total_distance_meters=primary_path.distance_meters,
+            estimated_travel_time_seconds=primary_path.estimated_travel_time_seconds,
+            estimated_travel_time_minutes=eta_min,
+            coordinates=coords,
             unit_current_position={
                 "node": unit.current_node,
                 "latitude": unit.latitude,
                 "longitude": unit.longitude
             },
-            destination_node=destination,
             eta_seconds=primary_path.estimated_travel_time_seconds,
-            route_status=RouteStatus.ACTIVE_DISPATCH,
-            simulation_status=SimulationStatus.RUNNING,
-            algorithm=algorithm,
+            route_status="active_dispatch",
+            simulation_status="running",
             primary_route=primary_path,
             alternative_routes=alt_routes,
             avoided_roads=list(avoid_roads),

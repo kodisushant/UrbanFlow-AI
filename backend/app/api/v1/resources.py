@@ -11,7 +11,8 @@ class UnitStatusUpdate(BaseModel):
     status: ResourceStatus
 
 
-@router.get("/", response_model=List[EmergencyUnit])
+@router.get("", response_model=List[EmergencyUnit])
+@router.get("/", response_model=List[EmergencyUnit], include_in_schema=False)
 async def list_emergency_units() -> List[EmergencyUnit]:
     """Retrieve all emergency response units and their real-time status."""
     return resource_service.get_all_units()

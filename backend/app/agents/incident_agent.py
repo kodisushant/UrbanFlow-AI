@@ -27,19 +27,23 @@ class IncidentAgent:
             rec_service = ResourceType.POLICE_CRUISER
             action_desc = "Dispatching traffic enforcement and roadblock perimeter unit."
 
+        status_val = incident.status.value if hasattr(incident.status, "value") else str(incident.status)
+        sev_val = incident.severity.value if hasattr(incident.severity, "value") else str(incident.severity)
+        svc_val = rec_service.value if hasattr(rec_service, "value") else str(rec_service)
+
         # Structured report strictly adhering to verified facts
         report = (
             f"INCIDENT REPORT [{incident.incident_id}]\n"
             f"Location: Intersection {incident.location_node} (Lat: {incident.latitude}, Lon: {incident.longitude})\n"
             f"Detected Event: {incident.title}\n"
             f"Sensor Source: {incident.source} | Confidence Score: {incident.confidence:.1%}\n"
-            f"Current Verification Status: {incident.status.value.upper()}\n"
-            f"Recommended Primary Service: {rec_service.value.upper()}\n"
+            f"Current Verification Status: {status_val.upper()}\n"
+            f"Recommended Primary Service: {svc_val.upper()}\n"
             f"Protocol: {action_desc}\n"
             f"Notice: Prototype simulation record. Awaiting human confirmation before physical dispatch."
         )
 
-        severity_summary = f"{incident.severity.value.upper()} priority incident verified at {incident.location_node}."
+        severity_summary = f"{sev_val.upper()} priority incident verified at {incident.location_node}."
         return severity_summary, rec_service, report
 
 
